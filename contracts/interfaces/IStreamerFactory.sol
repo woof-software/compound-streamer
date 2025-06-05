@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.29;
+
+import { AggregatorV3Interface } from "./AggregatorV3Interface.sol";
+
+interface IStreamerFactory {
+    event StreamerDeployed(address newContract, bytes constructorParams);
+
+    error ContractIsAlreadyDeployedException(address newContract);
+    error AssetsMatch();
+
+    function deployStreamer(
+        address _streamingAsset,
+        address _nativeAsset,
+        AggregatorV3Interface _streamingAssetOracle,
+        AggregatorV3Interface _nativeAssetOracle,
+        address _returnAddress,
+        address _streamCreator,
+        address _recipient,
+        uint256 _streamingAmount,
+        uint256 _slippage,
+        uint256 _claimCooldown,
+        uint256 _finishCooldown,
+        uint256 _streamDuration,
+        bytes32 salt
+    ) external returns (address);
+}

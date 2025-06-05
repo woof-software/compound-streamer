@@ -24,6 +24,7 @@ interface IStreamer {
     error NotEnoughBalance();
     error StreamNotFinished();
     error AlreadyInitialized();
+    error DurationTooShort();
 
     function initialize() external;
 

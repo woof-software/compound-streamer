@@ -10,6 +10,7 @@ contract Streamer is IStreamer {
     using SafeERC20 for IERC20;
 
     uint256 public constant SLIPPAGE_SCALE = 1e8;
+    uint256 public constant MIN_DURATION = 5 days;
 
     IERC20 public immutable streamingAsset;
     AggregatorV3Interface public immutable streamingAssetOracle;
@@ -58,7 +59,9 @@ contract Streamer is IStreamer {
         if (address(_streamingAsset) == address(0)) revert ZeroAddress();
         if (_streamingAmount == 0) revert ZeroAmount();
         if (_slippage > SLIPPAGE_SCALE) revert SlippageExceedsScaleFactor();
-
+        if (_claimCooldown < MIN_DURATION) revert DurationTooShort();
+        if (_finishCooldown < MIN_DURATION) revert DurationTooShort();
+        if (_streamDuration < MIN_DURATION) revert DurationTooShort();
         streamingAssetOracleDecimals = AggregatorV3Interface(_streamingAssetOracle).decimals();
         nativeAssetOracleDecimals = AggregatorV3Interface(_nativeAssetOracle).decimals();
         streamingAsset = _streamingAsset;

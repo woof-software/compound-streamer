@@ -16,7 +16,6 @@ import "hardhat-tracer";
 import "solidity-docgen"; // The tool by OpenZeppelin to generate documentation for contracts in Markdown.
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
-import "hardhat-exposed";
 
 import dotenv from "dotenv";
 dotenv.config();

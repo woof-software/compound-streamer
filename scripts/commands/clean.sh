@@ -3,7 +3,7 @@
 set -eo pipefail
 
 remove_build() {
-    rm -rf ./artifacts/ ./cache/ ./typechain-types/ ./out/ ./contracts-exposed/
+    rm -rf ./artifacts/ ./cache/ ./typechain-types/ ./out/
 }
 
 remove_openzeppelin() {

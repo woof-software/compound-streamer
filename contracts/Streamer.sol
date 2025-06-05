@@ -21,7 +21,7 @@ contract Streamer is IStreamer {
     uint256 public immutable streamingAmount;
     uint256 public immutable slippage;
     uint256 public immutable claimCooldown;
-    uint256 public immutable finishCooldown;
+    uint256 public immutable sweepCooldown;
     uint256 public immutable streamDuration;
     uint8 public immutable streamingAssetDecimals;
     uint8 public immutable nativeAssetDecimals;
@@ -50,7 +50,7 @@ contract Streamer is IStreamer {
         uint256 _streamingAmount,
         uint256 _slippage,
         uint256 _claimCooldown,
-        uint256 _finishCooldown,
+        uint256 _sweepCooldown,
         uint256 _streamDuration
     ) {
         if (_recipient == address(0)) revert ZeroAddress();
@@ -60,7 +60,7 @@ contract Streamer is IStreamer {
         if (_streamingAmount == 0) revert ZeroAmount();
         if (_slippage > SLIPPAGE_SCALE) revert SlippageExceedsScaleFactor();
         if (_claimCooldown < MIN_DURATION) revert DurationTooShort();
-        if (_finishCooldown < MIN_DURATION) revert DurationTooShort();
+        if (_sweepCooldown < MIN_DURATION) revert DurationTooShort();
         if (_streamDuration < MIN_DURATION) revert DurationTooShort();
         streamingAssetOracleDecimals = AggregatorV3Interface(_streamingAssetOracle).decimals();
         nativeAssetOracleDecimals = AggregatorV3Interface(_nativeAssetOracle).decimals();
@@ -75,7 +75,7 @@ contract Streamer is IStreamer {
         streamingAmount = _streamingAmount;
         slippage = _slippage;
         claimCooldown = _claimCooldown;
-        finishCooldown = _finishCooldown;
+        sweepCooldown = _sweepCooldown;
         streamDuration = _streamDuration;
     }
 
@@ -120,7 +120,7 @@ contract Streamer is IStreamer {
     function sweepRemaining() external isInitialized {
         // anyone can sweep the remaining balance after the stream has ended
         // but only stream creator can sweep before that
-        if (msg.sender != streamCreator && block.timestamp < startTimestamp + streamDuration + finishCooldown)
+        if (msg.sender != streamCreator && block.timestamp < startTimestamp + streamDuration + sweepCooldown)
             revert StreamNotFinished();
         uint256 remainingBalance = streamingAsset.balanceOf(address(this));
 

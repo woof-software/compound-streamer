@@ -15,12 +15,11 @@ contract StreamerFactory is IStreamerFactory {
         AggregatorV3Interface _streamingAssetOracle,
         AggregatorV3Interface _nativeAssetOracle,
         address _returnAddress,
-        address _streamCreator,
         address _recipient,
         uint256 _streamingAmount,
         uint256 _slippage,
         uint256 _claimCooldown,
-        uint256 _finishCooldown,
+        uint256 _sweepCooldown,
         uint256 _streamDuration,
         bytes32 salt
     ) external returns (address) {
@@ -32,14 +31,14 @@ contract StreamerFactory is IStreamerFactory {
             _streamingAssetOracle,
             _nativeAssetOracle,
             _returnAddress,
-            _streamCreator,
+            msg.sender,
             _recipient,
             streamingAssetDecimals,
             nativeAssetDecimals,
             _streamingAmount,
             _slippage,
             _claimCooldown,
-            _finishCooldown,
+            _sweepCooldown,
             _streamDuration
         );
         bytes32 uniqueSalt = keccak256(abi.encode(salt, msg.sender));

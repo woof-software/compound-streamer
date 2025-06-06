@@ -12,7 +12,6 @@ describe("StreamerFactory", function () {
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.years(1);
-    const salt = ethers.ZeroHash;
 
     const fixture = async () => {
         const [deployer, ...signers] = await ethers.getSigners();
@@ -42,8 +41,7 @@ describe("StreamerFactory", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration,
-                salt
+                streamDuration
             );
         await factory
             .connect(streamCreator)
@@ -58,12 +56,12 @@ describe("StreamerFactory", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration,
-                salt
+                streamDuration
             );
 
         const streamer = await ethers.getContractAt("Streamer", streamerAddress);
         expect(await streamer.streamCreator()).to.equal(streamCreator);
+        expect(await factory.counter()).to.equal(1);
     });
 
     it("Should revert if streaming and native assets are the same", async () => {
@@ -85,50 +83,47 @@ describe("StreamerFactory", function () {
                     slippage,
                     claimCooldown,
                     sweepCooldown,
-                    streamDuration,
-                    salt
+                    streamDuration
                 )
         ).revertedWithCustomError(factory, "AssetsMatch");
     });
 
-    it("Should revert if streamer is already deployed (same deployer and salt)", async () => {
-        const { signers, factory } = await restore();
-        const returnAddress = signers[0];
-        const streamCreator = signers[1];
-        const recipient = signers[2];
-        await factory
-            .connect(streamCreator)
-            .deployStreamer(
-                COMP,
-                USDC,
-                COMP_ORACLE,
-                USDC_ORACLE,
-                returnAddress,
-                recipient,
-                streamingAmount,
-                slippage,
-                claimCooldown,
-                sweepCooldown,
-                streamDuration,
-                salt
-            );
-        await expect(
-            factory
-                .connect(streamCreator)
-                .deployStreamer(
-                    COMP,
-                    USDC,
-                    COMP_ORACLE,
-                    USDC_ORACLE,
-                    returnAddress,
-                    recipient,
-                    streamingAmount,
-                    slippage,
-                    claimCooldown,
-                    sweepCooldown,
-                    streamDuration,
-                    salt
-                )
-        ).revertedWithCustomError(factory, "ContractIsAlreadyDeployedException");
-    });
+    // it("Should revert if streamer is already deployed (same deployer and salt)", async () => {
+    //     const { signers, factory } = await restore();
+    //     const returnAddress = signers[0];
+    //     const streamCreator = signers[1];
+    //     const recipient = signers[2];
+    //     await factory
+    //         .connect(streamCreator)
+    //         .deployStreamer(
+    //             COMP,
+    //             USDC,
+    //             COMP_ORACLE,
+    //             USDC_ORACLE,
+    //             returnAddress,
+    //             recipient,
+    //             streamingAmount,
+    //             slippage,
+    //             claimCooldown,
+    //             sweepCooldown,
+    //             streamDuration
+    //         );
+    //     await expect(
+    //         factory
+    //             .connect(streamCreator)
+    //             .deployStreamer(
+    //                 COMP,
+    //                 USDC,
+    //                 COMP_ORACLE,
+    //                 USDC_ORACLE,
+    //                 returnAddress,
+    //                 recipient,
+    //                 streamingAmount,
+    //                 slippage,
+    //                 claimCooldown,
+    //                 sweepCooldown,
+    //                 streamDuration
+    //             )
+    //     ).revertedWithCustomError(factory, "ContractIsAlreadyDeployedException");
+    // });
 });

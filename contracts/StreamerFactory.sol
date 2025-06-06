@@ -9,6 +9,8 @@ import { IStreamerFactory } from "./interfaces/IStreamerFactory.sol";
 import { Streamer } from "./Streamer.sol";
 
 contract StreamerFactory is IStreamerFactory {
+    uint256 public counter;
+
     function deployStreamer(
         address _streamingAsset,
         address _nativeAsset,
@@ -20,8 +22,7 @@ contract StreamerFactory is IStreamerFactory {
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _sweepCooldown,
-        uint256 _streamDuration,
-        bytes32 salt
+        uint256 _streamDuration
     ) external returns (address) {
         if (_streamingAsset == _nativeAsset) revert AssetsMatch();
         uint8 streamingAssetDecimals = IERC20Metadata(_streamingAsset).decimals();
@@ -41,7 +42,7 @@ contract StreamerFactory is IStreamerFactory {
             _sweepCooldown,
             _streamDuration
         );
-        bytes32 uniqueSalt = keccak256(abi.encode(salt, msg.sender));
+        bytes32 uniqueSalt = keccak256(abi.encode(msg.sender, counter++, constructorParams));
         bytes memory bytecodeWithParams = abi.encodePacked(type(Streamer).creationCode, constructorParams);
         address newContract = Create2.computeAddress(uniqueSalt, keccak256(bytecodeWithParams));
 

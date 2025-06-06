@@ -22,8 +22,9 @@ pnpm run
 
 ### Commands
 
-- `pnpm coverage` shows all coverage and `pnpm test` runs all Hardhat tests.
-- `pnpm testh:vvv test/SomeContract.ts` show details about events, calls, gas costs, etc.
+- `pnpm coverage` shows all coverage and `pnpm test` runs all Hardhat and Foundry tests.
+- `pnpm testh:vvv test/SomeContract.ts` and `pnpm testf -vvv --mc SomeContractTests` show details about events, calls, gas costs, etc.
+- `pnpm coveragef:sum` show a coverage summary with branches for Foundry.
 
 ### Environment variables
 

@@ -1,6 +1,6 @@
 /* eslint @typescript-eslint/no-non-null-assertion: ["off"] */
 
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, subtask } from "hardhat/config";
 import type { MultiSolcUserConfig } from "hardhat/src/types/config";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 /* Uncomment if support of TypeScript `paths` mappings is needed.
@@ -16,11 +16,28 @@ import "hardhat-tracer";
 import "solidity-docgen"; // The tool by OpenZeppelin to generate documentation for contracts in Markdown.
 import "hardhat-contract-sizer";
 import "hardhat-abi-exporter";
+import "hardhat-exposed";
 
 import dotenv from "dotenv";
 dotenv.config();
 
 import "./scripts/tasks/generate-account";
+
+/* Sets the action for the `TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS` task.
+ *
+ * The approach to ignore Solidity files in `test` directories for Hardhat speeds up its compilation process
+ * significantly. This is especially true in large projects with a lot of Foundry tests.
+ * It can be also extended for deployment scripts as well.
+ * See for more details:
+ * `https://kennysliding.medium.com/how-to-ignore-solidity-files-in-hardhat-compilation-6162963f8c84`
+ */
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
+    /* Get the list of source paths that would normally be passed to the Solidity compiler, then
+     * apply a filter function to exclude paths that contain the string "test".
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+    return (await runSuper()).filter((p: any) => !p.includes("test"));
+});
 
 const envs = process.env;
 
@@ -78,10 +95,8 @@ const config: HardhatUserConfig = {
             },
             forking: {
                 url: envs.FORKING_URL ?? "",
-                enabled: enableForking,
-                blockNumber: 22644000
-            },
-            initialBaseFeePerGas: 0 // disables EIP-1559 for tests
+                enabled: enableForking
+            }
             // Uncomment if "Error: cannot estimate gas; transaction may fail or may require manual gas limit...".
             // gas: 3E7,
             // gasPrice: 8E9

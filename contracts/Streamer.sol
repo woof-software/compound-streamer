@@ -129,6 +129,14 @@ contract Streamer is IStreamer {
         emit Swept(remainingBalance);
     }
 
+    function rescueToken(IERC20 token) external {
+        if (msg.sender != streamCreator) revert NotStreamCreator();
+        if (token == streamingAsset) revert CantRescueStreamingAsset();
+        uint256 balance = token.balanceOf(address(this));
+        token.safeTransfer(returnAddress, balance);
+        emit Rescued(address(token), balance);
+    }
+
     function getNativeAssetAmountOwed() public view returns (uint256) {
         if (nativeAssetSuppliedAmount >= streamingAmount) {
             return 0;
@@ -202,8 +210,6 @@ contract Streamer is IStreamer {
     /// @param toDecimals The number of decimals of the target amount
     /// @return The scaled amount
     function scaleAmount(uint256 amount, uint256 fromDecimals, uint256 toDecimals) internal pure returns (uint256) {
-        // can overflow but toDecimals is always 18
-        // and fromDecimals is always 6 or 8
         if (fromDecimals > toDecimals) {
             return amount / (10 ** (fromDecimals - toDecimals));
         } else {

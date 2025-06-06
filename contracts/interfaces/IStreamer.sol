@@ -12,10 +12,13 @@ enum StreamState {
 interface IStreamer {
     event Claimed(uint256 compAmount, uint256 usdcAmount);
     event Swept(uint256 amount);
+    event Rescued(address token, uint256 balance);
     event Initialized();
 
     error ZeroAmount();
     error NotReceiver();
+    error NotStreamCreator();
+    error CantRescueStreamingAsset();
     error ZeroAddress();
     error SlippageExceedsScaleFactor();
     error InvalidPrice();

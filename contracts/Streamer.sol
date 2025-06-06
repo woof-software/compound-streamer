@@ -84,10 +84,11 @@ contract Streamer is IStreamer {
         if (msg.sender != streamCreator) revert OnlyStreamCreator();
         startTimestamp = block.timestamp;
         lastClaimTimestamp = block.timestamp;
+        state = StreamState.ONGOING;
 
         // expect that comp balance is enough to cover the stream amount
         uint256 balance = streamingAsset.balanceOf(address(this));
-        if (calculateNativeAssetAmount(balance) < streamingAmount) revert NotEnoughBalance();
+        if (calculateNativeAssetAmount(balance) < streamingAmount) revert NotEnoughBalance(balance, streamingAmount);
 
         emit Initialized();
     }
@@ -158,13 +159,13 @@ contract Streamer is IStreamer {
         // Scale native asset price to streaming asset decimals for calculations
         uint256 nativeAssetPriceScaled = scaleAmount(
             uint256(nativeAssetPrice),
-            nativeAssetDecimals,
+            nativeAssetOracleDecimals,
             streamingAssetDecimals
         );
 
         uint256 nativeAssetAmountInUSD = (scaleAmount(nativeAssetAmount, nativeAssetDecimals, streamingAssetDecimals) *
-            nativeAssetPriceScaled) / 10 ** nativeAssetDecimals;
-        uint256 amountinStreamingAsset = (nativeAssetAmountInUSD * 10 ** nativeAssetDecimals) /
+            nativeAssetPriceScaled) / 10 ** streamingAssetDecimals;
+        uint256 amountinStreamingAsset = (nativeAssetAmountInUSD * 10 ** streamingAssetDecimals) /
             streamingAssetPriceScaled;
         return amountinStreamingAsset;
     }
@@ -185,7 +186,7 @@ contract Streamer is IStreamer {
         // Scale native asset price to streaming asset decimals for calculations
         uint256 nativeAssetPriceScaled = scaleAmount(
             uint256(nativeAssetPrice),
-            nativeAssetDecimals,
+            nativeAssetOracleDecimals,
             streamingAssetDecimals
         );
 

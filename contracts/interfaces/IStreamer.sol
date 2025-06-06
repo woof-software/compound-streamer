@@ -21,7 +21,7 @@ interface IStreamer {
     error InvalidPrice();
     error OnlyStreamCreator();
     error NotInitialized();
-    error NotEnoughBalance();
+    error NotEnoughBalance(uint256 balance, uint256 streamingAmount);
     error StreamNotFinished();
     error AlreadyInitialized();
     error DurationTooShort();

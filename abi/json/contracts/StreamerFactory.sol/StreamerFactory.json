@@ -61,6 +61,19 @@
         "type": "event"
     },
     {
+        "inputs": [],
+        "name": "counter",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -116,11 +129,6 @@
                 "internalType": "uint256",
                 "name": "_streamDuration",
                 "type": "uint256"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "salt",
-                "type": "bytes32"
             }
         ],
         "name": "deployStreamer",

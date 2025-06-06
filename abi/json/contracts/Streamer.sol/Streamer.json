@@ -77,6 +77,11 @@
     },
     {
         "inputs": [],
+        "name": "CantRescueStreamingAsset",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "DurationTooShort",
         "type": "error"
     },
@@ -109,6 +114,11 @@
     {
         "inputs": [],
         "name": "NotReceiver",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotStreamCreator",
         "type": "error"
     },
     {
@@ -170,6 +180,25 @@
         "anonymous": false,
         "inputs": [],
         "name": "Initialized",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+            }
+        ],
+        "name": "Rescued",
         "type": "event"
     },
     {
@@ -365,6 +394,19 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "token",
+                "type": "address"
+            }
+        ],
+        "name": "rescueToken",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

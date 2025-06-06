@@ -78,8 +78,10 @@ const config: HardhatUserConfig = {
             },
             forking: {
                 url: envs.FORKING_URL ?? "",
-                enabled: enableForking
-            }
+                enabled: enableForking,
+                blockNumber: 22644000
+            },
+            initialBaseFeePerGas: 0 // disables EIP-1559 for tests
             // Uncomment if "Error: cannot estimate gas; transaction may fail or may require manual gas limit...".
             // gas: 3E7,
             // gasPrice: 8E9

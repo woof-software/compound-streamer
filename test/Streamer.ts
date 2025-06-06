@@ -37,10 +37,6 @@ describe("Streamer", function () {
     before(async () => {
         comptrollerV2 = await ethers.getContractAt("IComptrollerV2", comptrollerV2Address);
         COMP = await ethers.getContractAt("IERC20", CompAddress);
-        await network.provider.request({
-            method: "hardhat_setBalance",
-            params: [timelockAddress, "0x100000000000000000"]
-        });
         timelockSigner = await ethers.getImpersonatedSigner(timelockAddress);
     });
 

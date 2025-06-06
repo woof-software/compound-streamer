@@ -26,6 +26,12 @@ event Claimed(uint256 compAmount, uint256 usdcAmount)
 event Swept(uint256 amount)
 ```
 
+### Rescued
+
+```solidity
+event Rescued(address token, uint256 balance)
+```
+
 ### Initialized
 
 ```solidity
@@ -42,6 +48,18 @@ error ZeroAmount()
 
 ```solidity
 error NotReceiver()
+```
+
+### NotStreamCreator
+
+```solidity
+error NotStreamCreator()
+```
+
+### CantRescueStreamingAsset
+
+```solidity
+error CantRescueStreamingAsset()
 ```
 
 ### ZeroAddress

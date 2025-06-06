@@ -164,6 +164,12 @@ function claim() external
 function sweepRemaining() external
 ```
 
+### rescueToken
+
+```solidity
+function rescueToken(contract IERC20 token) external
+```
+
 ### getNativeAssetAmountOwed
 
 ```solidity

@@ -1,0 +1,9 @@
+[
+    "error AssetsMatch()",
+    "error ContractIsAlreadyDeployedException(address)",
+    "error Create2EmptyBytecode()",
+    "error FailedDeployment()",
+    "error InsufficientBalance(uint256,uint256)",
+    "event StreamerDeployed(address,bytes)",
+    "function deployStreamer(address,address,address,address,address,address,uint256,uint256,uint256,uint256,uint256,bytes32) returns (address)"
+]

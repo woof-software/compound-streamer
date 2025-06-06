@@ -1,0 +1,137 @@
+[
+    {
+        "inputs": [],
+        "name": "AssetsMatch",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newContract",
+                "type": "address"
+            }
+        ],
+        "name": "ContractIsAlreadyDeployedException",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "Create2EmptyBytecode",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "FailedDeployment",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "needed",
+                "type": "uint256"
+            }
+        ],
+        "name": "InsufficientBalance",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "newContract",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "constructorParams",
+                "type": "bytes"
+            }
+        ],
+        "name": "StreamerDeployed",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_streamingAsset",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_nativeAsset",
+                "type": "address"
+            },
+            {
+                "internalType": "contract AggregatorV3Interface",
+                "name": "_streamingAssetOracle",
+                "type": "address"
+            },
+            {
+                "internalType": "contract AggregatorV3Interface",
+                "name": "_nativeAssetOracle",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_returnAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_streamingAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_slippage",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_claimCooldown",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_sweepCooldown",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_streamDuration",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "salt",
+                "type": "bytes32"
+            }
+        ],
+        "name": "deployStreamer",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

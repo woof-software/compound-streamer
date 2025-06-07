@@ -65,6 +65,11 @@
                 "internalType": "uint256",
                 "name": "_streamDuration",
                 "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minimumNoticePeriod",
+                "type": "uint256"
             }
         ],
         "stateMutability": "nonpayable",
@@ -77,7 +82,17 @@
     },
     {
         "inputs": [],
+        "name": "AlreadyTerminated",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "CantRescueStreamingAsset",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "CreatorCannotSweepYet",
         "type": "error"
     },
     {
@@ -123,7 +138,7 @@
     },
     {
         "inputs": [],
-        "name": "OnlyStreamCreator",
+        "name": "NoticePeriodExceedsStreamDuration",
         "type": "error"
     },
     {
@@ -145,6 +160,22 @@
     {
         "inputs": [],
         "name": "StreamNotFinished",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "SweepCooldownNotPassed",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "terminationTimestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "TerminationIsAfterStream",
         "type": "error"
     },
     {
@@ -212,6 +243,19 @@
             }
         ],
         "name": "Swept",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "terminationTimestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "Terminated",
         "type": "event"
     },
     {
@@ -321,6 +365,19 @@
     {
         "inputs": [],
         "name": "lastClaimTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "minimumNoticePeriod",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -583,6 +640,32 @@
         "name": "sweepRemaining",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_terminationTimestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "terminateStream",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "terminationTimestamp",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     }
 ]

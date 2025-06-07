@@ -129,6 +129,11 @@
                 "internalType": "uint256",
                 "name": "_streamDuration",
                 "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minimumNoticePeriod",
+                "type": "uint256"
             }
         ],
         "name": "deployStreamer",

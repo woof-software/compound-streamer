@@ -6,18 +6,28 @@
 enum StreamState {
   NOT_INITIALIZED,
   ONGOING,
-  FINISHED,
-  NOTICE_PERIOD,
-  CANCELED
+  TERMINATED
 }
 ```
 
 ## IStreamer
 
+### Initialized
+
+```solidity
+event Initialized()
+```
+
 ### Claimed
 
 ```solidity
 event Claimed(uint256 compAmount, uint256 usdcAmount)
+```
+
+### Terminated
+
+```solidity
+event Terminated(uint256 terminationTimestamp)
 ```
 
 ### Swept
@@ -30,12 +40,6 @@ event Swept(uint256 amount)
 
 ```solidity
 event Rescued(address token, uint256 balance)
-```
-
-### Initialized
-
-```solidity
-event Initialized()
 ```
 
 ### ZeroAmount
@@ -80,12 +84,6 @@ error SlippageExceedsScaleFactor()
 error InvalidPrice()
 ```
 
-### OnlyStreamCreator
-
-```solidity
-error OnlyStreamCreator()
-```
-
 ### NotInitialized
 
 ```solidity
@@ -114,6 +112,36 @@ error AlreadyInitialized()
 
 ```solidity
 error DurationTooShort()
+```
+
+### TerminationIsAfterStream
+
+```solidity
+error TerminationIsAfterStream(uint256 terminationTimestamp)
+```
+
+### CreatorCannotSweepYet
+
+```solidity
+error CreatorCannotSweepYet()
+```
+
+### SweepCooldownNotPassed
+
+```solidity
+error SweepCooldownNotPassed()
+```
+
+### AlreadyTerminated
+
+```solidity
+error AlreadyTerminated()
+```
+
+### NoticePeriodExceedsStreamDuration
+
+```solidity
+error NoticePeriodExceedsStreamDuration()
 ```
 
 ### initialize

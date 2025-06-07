@@ -80,6 +80,12 @@ uint256 sweepCooldown
 uint256 streamDuration
 ```
 
+### minimumNoticePeriod
+
+```solidity
+uint256 minimumNoticePeriod
+```
+
 ### streamingAssetDecimals
 
 ```solidity
@@ -116,6 +122,12 @@ uint256 startTimestamp
 uint256 lastClaimTimestamp
 ```
 
+### terminationTimestamp
+
+```solidity
+uint256 terminationTimestamp
+```
+
 ### nativeAssetSuppliedAmount
 
 ```solidity
@@ -134,16 +146,16 @@ uint256 streamingAssetClaimedAmount
 enum StreamState state
 ```
 
-### isInitialized
+### onlyStreamCreator
 
 ```solidity
-modifier isInitialized()
+modifier onlyStreamCreator()
 ```
 
 ### constructor
 
 ```solidity
-constructor(contract IERC20 _streamingAsset, contract AggregatorV3Interface _streamingAssetOracle, contract AggregatorV3Interface _nativeAssetOracle, address _returnAddress, address _streamCreator, address _recipient, uint8 _streamingAssetDecimals, uint8 _nativeAssetDecimals, uint256 _streamingAmount, uint256 _slippage, uint256 _claimCooldown, uint256 _sweepCooldown, uint256 _streamDuration) public
+constructor(contract IERC20 _streamingAsset, contract AggregatorV3Interface _streamingAssetOracle, contract AggregatorV3Interface _nativeAssetOracle, address _returnAddress, address _streamCreator, address _recipient, uint8 _streamingAssetDecimals, uint8 _nativeAssetDecimals, uint256 _streamingAmount, uint256 _slippage, uint256 _claimCooldown, uint256 _sweepCooldown, uint256 _streamDuration, uint256 _minimumNoticePeriod) public
 ```
 
 ### initialize
@@ -156,6 +168,12 @@ function initialize() external
 
 ```solidity
 function claim() external
+```
+
+### terminateStream
+
+```solidity
+function terminateStream(uint256 _terminationTimestamp) external
 ```
 
 ### sweepRemaining

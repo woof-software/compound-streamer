@@ -20,6 +20,7 @@ interface IStreamerFactory {
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _finishCooldown,
-        uint256 _streamDuration
+        uint256 _streamDuration,
+        uint256 _minimumNoticePeriod
     ) external returns (address);
 }

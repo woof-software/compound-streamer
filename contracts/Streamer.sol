@@ -10,7 +10,7 @@ contract Streamer is IStreamer {
     using SafeERC20 for IERC20;
 
     uint256 public constant SLIPPAGE_SCALE = 1e8;
-    uint256 public constant MIN_DURATION = 5 days;
+    uint256 public constant MIN_DURATION = 1 days;
 
     IERC20 public immutable streamingAsset;
     AggregatorV3Interface public immutable streamingAssetOracle;
@@ -23,18 +23,20 @@ contract Streamer is IStreamer {
     uint256 public immutable claimCooldown;
     uint256 public immutable sweepCooldown;
     uint256 public immutable streamDuration;
+    uint256 public immutable minimumNoticePeriod;
     uint8 public immutable streamingAssetDecimals;
     uint8 public immutable nativeAssetDecimals;
     uint8 public immutable streamingAssetOracleDecimals;
     uint8 public immutable nativeAssetOracleDecimals;
     uint256 public startTimestamp;
     uint256 public lastClaimTimestamp;
+    uint256 public terminationTimestamp;
     uint256 public nativeAssetSuppliedAmount;
     uint256 public streamingAssetClaimedAmount;
     StreamState public state;
 
-    modifier isInitialized() {
-        if (state == StreamState.NOT_INITIALIZED) revert NotInitialized();
+    modifier onlyStreamCreator() {
+        if (msg.sender != streamCreator) revert NotStreamCreator();
         _;
     }
 
@@ -51,7 +53,8 @@ contract Streamer is IStreamer {
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _sweepCooldown,
-        uint256 _streamDuration
+        uint256 _streamDuration,
+        uint256 _minimumNoticePeriod
     ) {
         if (_recipient == address(0)) revert ZeroAddress();
         if (_streamCreator == address(0)) revert ZeroAddress();
@@ -62,6 +65,8 @@ contract Streamer is IStreamer {
         if (_claimCooldown < MIN_DURATION) revert DurationTooShort();
         if (_sweepCooldown < MIN_DURATION) revert DurationTooShort();
         if (_streamDuration < MIN_DURATION) revert DurationTooShort();
+        if (_minimumNoticePeriod < MIN_DURATION) revert DurationTooShort();
+        if (_minimumNoticePeriod > _streamDuration) revert NoticePeriodExceedsStreamDuration();
         streamingAssetOracleDecimals = AggregatorV3Interface(_streamingAssetOracle).decimals();
         nativeAssetOracleDecimals = AggregatorV3Interface(_nativeAssetOracle).decimals();
         streamingAsset = _streamingAsset;
@@ -77,11 +82,12 @@ contract Streamer is IStreamer {
         claimCooldown = _claimCooldown;
         sweepCooldown = _sweepCooldown;
         streamDuration = _streamDuration;
+        minimumNoticePeriod = _minimumNoticePeriod;
     }
 
     function initialize() external {
         if (state != StreamState.NOT_INITIALIZED) revert AlreadyInitialized();
-        if (msg.sender != streamCreator) revert OnlyStreamCreator();
+        if (msg.sender != streamCreator) revert NotStreamCreator();
         startTimestamp = block.timestamp;
         lastClaimTimestamp = block.timestamp;
         state = StreamState.ONGOING;
@@ -93,7 +99,8 @@ contract Streamer is IStreamer {
         emit Initialized();
     }
 
-    function claim() external isInitialized {
+    function claim() external {
+        if (state == StreamState.NOT_INITIALIZED) revert NotInitialized();
         // Check if the caller is the receiver
         // and allow anyone to claim if the last claim was more than claim cooldown
         if (msg.sender != recipient && block.timestamp < lastClaimTimestamp + claimCooldown) revert NotReceiver();
@@ -118,19 +125,46 @@ contract Streamer is IStreamer {
         emit Claimed(streamingAssetAmount, owed);
     }
 
-    function sweepRemaining() external isInitialized {
-        // anyone can sweep the remaining balance after the stream has ended
-        // but only stream creator can sweep before that
-        if (msg.sender != streamCreator && block.timestamp < startTimestamp + streamDuration + sweepCooldown)
-            revert StreamNotFinished();
+    function terminateStream(uint256 _terminationTimestamp) external onlyStreamCreator {
+        if (state == StreamState.TERMINATED) revert AlreadyTerminated();
+        if (_terminationTimestamp == 0) {
+            terminationTimestamp = block.timestamp + minimumNoticePeriod;
+        } else {
+            if (_terminationTimestamp < block.timestamp + minimumNoticePeriod) revert DurationTooShort();
+            terminationTimestamp = _terminationTimestamp;
+        }
+
+        if (terminationTimestamp > startTimestamp + streamDuration)
+            revert TerminationIsAfterStream(_terminationTimestamp);
+        state = StreamState.TERMINATED;
+        emit Terminated(terminationTimestamp);
+    }
+
+    function sweepRemaining() external {
+        if (state == StreamState.NOT_INITIALIZED) {
+            if (msg.sender != streamCreator) {
+                revert NotStreamCreator();
+            }
+        } else {
+            uint256 streamEnd = (state == StreamState.TERMINATED)
+                ? terminationTimestamp
+                : startTimestamp + streamDuration;
+
+            if (msg.sender == streamCreator) {
+                if (block.timestamp <= streamEnd) {
+                    revert CreatorCannotSweepYet();
+                }
+            } else if (block.timestamp <= streamEnd + sweepCooldown) {
+                revert SweepCooldownNotPassed();
+            }
+        }
         uint256 remainingBalance = streamingAsset.balanceOf(address(this));
 
         streamingAsset.safeTransfer(returnAddress, remainingBalance);
         emit Swept(remainingBalance);
     }
 
-    function rescueToken(IERC20 token) external {
-        if (msg.sender != streamCreator) revert NotStreamCreator();
+    function rescueToken(IERC20 token) external onlyStreamCreator {
         if (token == streamingAsset) revert CantRescueStreamingAsset();
         uint256 balance = token.balanceOf(address(this));
         token.safeTransfer(returnAddress, balance);
@@ -141,14 +175,19 @@ contract Streamer is IStreamer {
         if (nativeAssetSuppliedAmount >= streamingAmount) {
             return 0;
         }
+        uint256 streamEnd = state == StreamState.TERMINATED ? terminationTimestamp : startTimestamp + streamDuration;
+        uint256 totalOwed;
 
-        if (block.timestamp < startTimestamp + streamDuration) {
+        if (block.timestamp < streamEnd) {
             uint256 elapsed = block.timestamp - startTimestamp;
-            uint256 totalOwed = (streamingAmount * elapsed) / streamDuration;
-            return totalOwed - nativeAssetSuppliedAmount;
+            totalOwed = (streamingAmount * elapsed) / streamDuration;
         } else {
-            return streamingAmount - nativeAssetSuppliedAmount;
+            // If Stream is terminated, calculate amount accrued before termination timestamp
+            if (state == StreamState.TERMINATED)
+                totalOwed = (streamingAmount * (streamEnd - startTimestamp)) / streamDuration;
+            else totalOwed = streamingAmount;
         }
+        return totalOwed - nativeAssetSuppliedAmount;
     }
 
     function calculateStreamingAssetAmount(uint256 nativeAssetAmount) public view returns (uint256) {

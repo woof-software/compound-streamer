@@ -22,7 +22,8 @@ contract StreamerFactory is IStreamerFactory {
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _sweepCooldown,
-        uint256 _streamDuration
+        uint256 _streamDuration,
+        uint256 _minimumNoticePeriod
     ) external returns (address) {
         if (_streamingAsset == _nativeAsset) revert AssetsMatch();
         uint8 streamingAssetDecimals = IERC20Metadata(_streamingAsset).decimals();
@@ -40,7 +41,8 @@ contract StreamerFactory is IStreamerFactory {
             _slippage,
             _claimCooldown,
             _sweepCooldown,
-            _streamDuration
+            _streamDuration,
+            _minimumNoticePeriod
         );
         bytes32 uniqueSalt = keccak256(abi.encode(msg.sender, counter++, constructorParams));
         bytes memory bytecodeWithParams = abi.encodePacked(type(Streamer).creationCode, constructorParams);

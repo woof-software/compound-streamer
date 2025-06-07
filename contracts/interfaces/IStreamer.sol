@@ -4,16 +4,15 @@ pragma solidity ^0.8.29;
 enum StreamState {
     NOT_INITIALIZED,
     ONGOING,
-    FINISHED,
-    NOTICE_PERIOD,
-    CANCELED
+    TERMINATED
 }
 
 interface IStreamer {
+    event Initialized();
     event Claimed(uint256 compAmount, uint256 usdcAmount);
+    event Terminated(uint256 terminationTimestamp);
     event Swept(uint256 amount);
     event Rescued(address token, uint256 balance);
-    event Initialized();
 
     error ZeroAmount();
     error NotReceiver();
@@ -22,12 +21,16 @@ interface IStreamer {
     error ZeroAddress();
     error SlippageExceedsScaleFactor();
     error InvalidPrice();
-    error OnlyStreamCreator();
     error NotInitialized();
     error NotEnoughBalance(uint256 balance, uint256 streamingAmount);
     error StreamNotFinished();
     error AlreadyInitialized();
     error DurationTooShort();
+    error TerminationIsAfterStream(uint256 terminationTimestamp);
+    error CreatorCannotSweepYet();
+    error SweepCooldownNotPassed();
+    error AlreadyTerminated();
+    error NoticePeriodExceedsStreamDuration();
 
     function initialize() external;
 

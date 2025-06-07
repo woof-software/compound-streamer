@@ -7,13 +7,11 @@ import { IComptrollerV2, IERC20, Streamer } from "../typechain-types";
 const StreamState = {
     NOT_INITIALIZED: 0,
     ONGOING: 1,
-    FINISHED: 2,
-    NOTICE_PERIOD: 3,
-    CANCELED: 4
+    TERMINATED: 2
 } as const;
 const DUST = 30;
 const SLIPPAGE_SCALE = 1e8;
-const MIN_DURATION = time.duration.days(5);
+const MIN_DURATION = time.duration.days(1);
 
 describe("Streamer", function () {
     const timelockAddress = "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925";
@@ -30,6 +28,7 @@ describe("Streamer", function () {
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.years(1);
+    const minimumNoticePeriod = time.duration.days(30);
     let timelockSigner: HardhatEthersSigner;
     let comptrollerV2: IComptrollerV2;
     let COMP: IERC20;
@@ -62,7 +61,8 @@ describe("Streamer", function () {
             slippage,
             claimCooldown,
             sweepCooldown,
-            streamDuration
+            streamDuration,
+            minimumNoticePeriod
         );
         await streamer.waitForDeployment();
         return { streamer, user, signers };
@@ -74,12 +74,11 @@ describe("Streamer", function () {
         await streamer.connect(sender).initialize();
     };
 
-    const getExpectedAmount = async (streamer: Streamer) => {
-        const latestTimestamp = (await time.latest()) + 1;
+    const getExpectedAmount = async (streamer: Streamer, claimTimestamp: number) => {
         const startTimestamp = await streamer.startTimestamp();
         let owed =
-            latestTimestamp < startTimestamp + BigInt(streamDuration)
-                ? (streamingAmount * (BigInt(latestTimestamp) - startTimestamp)) / BigInt(streamDuration)
+            claimTimestamp < startTimestamp + BigInt(streamDuration)
+                ? (streamingAmount * (BigInt(claimTimestamp) - startTimestamp)) / BigInt(streamDuration)
                 : streamingAmount;
         owed -= await streamer.nativeAssetSuppliedAmount();
         const expectedAmount = await streamer.calculateStreamingAssetAmount(owed);
@@ -131,7 +130,7 @@ describe("Streamer", function () {
 
         await expect(initStreamer(streamer, streamingAmount, user)).revertedWithCustomError(
             streamer,
-            "OnlyStreamCreator"
+            "NotStreamCreator"
         );
     });
 
@@ -162,7 +161,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "ZeroAddress");
         // Recipient
@@ -180,7 +180,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "ZeroAddress");
         // Stream Creator
@@ -198,7 +199,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "ZeroAddress");
         // Return address
@@ -216,7 +218,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "ZeroAddress");
         // Streaming amount
@@ -234,7 +237,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "ZeroAmount");
     });
@@ -256,12 +260,13 @@ describe("Streamer", function () {
                 SLIPPAGE_SCALE + 1000,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "SlippageExceedsScaleFactor");
     });
 
-    it("Should revert if duration is less than minimum duration", async () => {
+    it("Should not deploy if duration is less than minimum duration", async () => {
         const [user] = await ethers.getSigners();
         const streamerFactory = await ethers.getContractFactory("Streamer");
         // Claim duration
@@ -279,7 +284,8 @@ describe("Streamer", function () {
                 slippage,
                 MIN_DURATION - time.duration.days(1),
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "DurationTooShort");
         // Sweep duration
@@ -297,7 +303,8 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 MIN_DURATION - time.duration.days(1),
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             )
         ).revertedWithCustomError(streamerFactory, "DurationTooShort");
         // Stream duration
@@ -315,16 +322,59 @@ describe("Streamer", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
+                MIN_DURATION - time.duration.days(1),
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "DurationTooShort");
+        // Minimum notice period
+        await expect(
+            streamerFactory.deploy(
+                COMP,
+                COMP_ORACLE,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                6,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
                 MIN_DURATION - time.duration.days(1)
             )
         ).revertedWithCustomError(streamerFactory, "DurationTooShort");
     });
 
+    it("Should not deploy if minimum notice period is longer than stream duration", async () => {
+        const [user] = await ethers.getSigners();
+        const streamerFactory = await ethers.getContractFactory("Streamer");
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                COMP_ORACLE,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                6,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                streamDuration + time.duration.days(1)
+            )
+        ).revertedWithCustomError(streamerFactory, "NoticePeriodExceedsStreamDuration");
+    });
+
     it("Should claim", async () => {
         const { streamer, user } = await restore();
         await time.increase(time.duration.days(3));
-        const expectedAmount = await getExpectedAmount(streamer);
-        const tx = await streamer.connect(user).claim();
+        const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        const tx = streamer.connect(user).claim();
 
         await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
     });
@@ -352,8 +402,8 @@ describe("Streamer", function () {
         ];
         for (const advanceTime of advanceTimeDurations) {
             await time.increase(advanceTime);
-            const expectedAmount = await getExpectedAmount(streamer);
-            const tx = await streamer.connect(user).claim();
+            const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+            const tx = streamer.connect(user).claim();
             await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         }
     });
@@ -362,21 +412,21 @@ describe("Streamer", function () {
         const { streamer, user, signers } = await restore();
         // Claim for the first time (Recipient doesn't claim for claim duration)
         await expect(streamer.connect(signers[0]).claim()).revertedWithCustomError(streamer, "NotReceiver");
-        let expectedAmount = await getExpectedAmount(streamer);
-        let tx = await streamer.connect(user).claim();
+        let expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        let tx = streamer.connect(user).claim();
         await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         // Recipient claims
         await time.increase(time.duration.hours(1));
-        expectedAmount = await getExpectedAmount(streamer);
-        tx = await streamer.connect(user).claim();
+        expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        tx = streamer.connect(user).claim();
         await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         // Not recipient tries to claim after recipient
         await time.increase(claimCooldown / 2);
         await expect(streamer.connect(signers[0]).claim()).revertedWithCustomError(streamer, "NotReceiver");
         // Not recipient claims after cooldown period
         await time.increase(claimCooldown / 2);
-        expectedAmount = await getExpectedAmount(streamer);
-        tx = await streamer.connect(signers[0]).claim();
+        expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        tx = streamer.connect(signers[0]).claim();
         await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
     });
 
@@ -384,8 +434,8 @@ describe("Streamer", function () {
         const { streamer, user } = await restore();
         for (let i = 0; i < 12; i++) {
             await time.increase(streamDuration / 12);
-            const expectedAmount = await getExpectedAmount(streamer);
-            const tx = await streamer.connect(user).claim();
+            const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+            const tx = streamer.connect(user).claim();
             await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         }
         const owed = await streamer.getNativeAssetAmountOwed();
@@ -400,8 +450,8 @@ describe("Streamer", function () {
         const { streamer, user } = await restore();
         for (let i = 0; i < 12; i++) {
             await time.increase(streamDuration / 12);
-            const expectedAmount = await getExpectedAmount(streamer);
-            const tx = await streamer.connect(user).claim();
+            const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+            const tx = streamer.connect(user).claim();
             await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         }
 
@@ -413,40 +463,43 @@ describe("Streamer", function () {
         await time.increase(streamDuration + sweepCooldown);
 
         const balance = await COMP.balanceOf(streamer);
-        const tx = await streamer.connect(user).sweepRemaining();
+        const tx = streamer.connect(user).sweepRemaining();
         await expect(tx).changeTokenBalances(COMP, [streamer, returnAddress], [-balance, balance]);
     });
 
     it("Should not sweep all before stream is finished", async () => {
         const { streamer, user } = await restore();
         await time.increase(streamDuration / 2);
-        await expect(streamer.connect(user).sweepRemaining()).revertedWithCustomError(streamer, "StreamNotFinished");
+        await expect(streamer.connect(user).sweepRemaining()).revertedWithCustomError(
+            streamer,
+            "SweepCooldownNotPassed"
+        );
     });
 
-    it("Should let stream creator sweep all before stream is finished", async () => {
+    it("Should not let stream creator sweep all before stream is finished", async () => {
         const { streamer, user } = await restore();
         // Claim 1 time
         await time.increase(time.duration.days(20));
         await streamer.connect(user).claim();
         // Sweep remaining
-        const remainingBalance = await COMP.balanceOf(streamer);
-        const tx = streamer.connect(timelockSigner).sweepRemaining();
-        await expect(tx).to.not.be.revertedWithCustomError(streamer, "StreamNotFinished");
-        await expect(tx).changeTokenBalances(COMP, [streamer, returnAddress], [-remainingBalance, remainingBalance]);
+        await expect(streamer.connect(timelockSigner).sweepRemaining()).revertedWithCustomError(
+            streamer,
+            "CreatorCannotSweepYet"
+        );
     });
 
     it("should sweep all after stream is finished", async () => {
         const { streamer, user, signers } = await restore();
         for (let i = 0; i < 12; i++) {
             await time.increase(streamDuration / 12);
-            const expectedAmount = await getExpectedAmount(streamer);
-            const tx = await streamer.connect(user).claim();
+            const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+            const tx = streamer.connect(user).claim();
             await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
         }
         const remainingBalance = await COMP.balanceOf(streamer);
         expect(remainingBalance).to.be.greaterThan(0);
         await time.increase(sweepCooldown);
-        const tx = await streamer.connect(signers[0]).sweepRemaining();
+        const tx = streamer.connect(signers[0]).sweepRemaining();
         await expect(tx).changeTokenBalances(COMP, [streamer, returnAddress], [-remainingBalance, remainingBalance]);
     });
 
@@ -471,12 +524,167 @@ describe("Streamer", function () {
 
         // Claim remaining
         await time.increaseTo(Number(await streamer.startTimestamp()) + streamDuration);
-        const expectedAmount = await getExpectedAmount(streamer);
+        const expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
         expect(expectedAmount).to.be.greaterThan(remainingAmount);
         const tx = streamer.connect(user).claim();
         await expect(tx).to.not.be.reverted;
         await expect(tx).changeTokenBalance(COMP, user, remainingAmount);
         // Check that the streamer still ows user the tokens
-        expect(await getExpectedAmount(streamer)).to.be.closeTo(expectedAmount - remainingAmount, 1e12);
+        expect(await getExpectedAmount(streamer, (await time.latest()) + 1)).to.be.closeTo(
+            expectedAmount - remainingAmount,
+            1e12
+        );
+    });
+
+    it("Should terminate stream with standard notice period", async () => {
+        const { streamer, user } = await restore();
+        // Skip the time for 5 month
+        await time.increase(time.duration.days(5 * 30));
+        // Terminate the stream
+        await streamer.connect(timelockSigner).terminateStream(0);
+        expect(await streamer.terminationTimestamp()).to.equal((await time.latest()) + minimumNoticePeriod);
+        expect(await streamer.state()).to.equal(StreamState.TERMINATED);
+        const expectedWholeAmount = await getExpectedAmount(streamer, Number(await streamer.terminationTimestamp()));
+        let expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        // Claim after termination
+        let tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        // Claim one more time during temination period
+        await time.increase(minimumNoticePeriod / 2);
+        expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        // Claim whole after termination period
+        await time.increaseTo(Number(await streamer.terminationTimestamp()));
+        expectedAmount = await getExpectedAmount(streamer, await time.latest());
+        tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        expect(await COMP.balanceOf(user)).to.be.closeTo(expectedWholeAmount, DUST);
+        // Check that no more tokens are accrued
+        await time.increase(time.duration.days(5));
+        await expect(streamer.connect(user).claim()).revertedWithCustomError(streamer, "ZeroAmount");
+        // Sweep remaining
+        const remainingBalance = await COMP.balanceOf(streamer);
+        expect(await streamer.calculateNativeAssetAmount(remainingBalance)).to.be.closeTo(
+            (await streamer.streamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
+            DUST
+        );
+        tx = streamer.connect(timelockSigner).sweepRemaining();
+        await expect(tx).changeTokenBalance(COMP, returnAddress, remainingBalance);
+    });
+
+    it("Should terminate stream with custom notice period", async () => {
+        const { streamer, user } = await restore();
+        // Skip the time for 5 month
+        await time.increase(time.duration.days(5 * 30));
+        // Terminate the stream
+        const newTerminationTimestamp = (await time.latest()) + time.duration.days(60);
+        await streamer.connect(timelockSigner).terminateStream(newTerminationTimestamp);
+        expect(await streamer.terminationTimestamp()).to.equal(newTerminationTimestamp);
+        expect(await streamer.state()).to.equal(StreamState.TERMINATED);
+        const expectedWholeAmount = await getExpectedAmount(streamer, Number(await streamer.terminationTimestamp()));
+        let expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        // Claim after termination
+        let tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        // Claim one more time during temination period
+        await time.increase(minimumNoticePeriod / 2);
+        expectedAmount = await getExpectedAmount(streamer, (await time.latest()) + 1);
+        tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        // Claim whole after termination period
+        await time.increaseTo(Number(await streamer.terminationTimestamp()));
+        expectedAmount = await getExpectedAmount(streamer, await time.latest());
+        tx = streamer.connect(user).claim();
+        await expect(tx).changeTokenBalance(COMP, user, expectedAmount);
+        expect(await COMP.balanceOf(user)).to.be.closeTo(expectedWholeAmount, DUST);
+        // Check that no more tokens are accrued
+        await time.increase(time.duration.days(5));
+        await expect(streamer.connect(user).claim()).revertedWithCustomError(streamer, "ZeroAmount");
+        // Sweep remaining
+        const remainingBalance = await COMP.balanceOf(streamer);
+        expect(await streamer.calculateNativeAssetAmount(remainingBalance)).to.be.closeTo(
+            (await streamer.streamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
+            DUST
+        );
+        tx = streamer.connect(timelockSigner).sweepRemaining();
+        await expect(tx).changeTokenBalance(COMP, returnAddress, remainingBalance);
+    });
+
+    it("Should not let terminate if passed termination timestamp is after stream duration", async () => {
+        const { streamer } = await restore();
+        const newTerminationTimestamp =
+            Number(await streamer.startTimestamp()) + streamDuration + time.duration.days(1);
+        await expect(streamer.connect(timelockSigner).terminateStream(newTerminationTimestamp)).revertedWithCustomError(
+            streamer,
+            "TerminationIsAfterStream"
+        );
+    });
+
+    it("Should not let terminate if block.timestamp + minimum notice period is after stream duration", async () => {
+        const { streamer } = await restore();
+        await time.increaseTo(Number(await streamer.startTimestamp()) + streamDuration - minimumNoticePeriod / 2);
+        await expect(streamer.connect(timelockSigner).terminateStream(0)).revertedWithCustomError(
+            streamer,
+            "TerminationIsAfterStream"
+        );
+    });
+
+    it("Should not let terminate if notice period is shorter than minimum notice period", async () => {
+        const { streamer } = await restore();
+        const newTerminationTimestamp = (await time.latest()) + minimumNoticePeriod / 2;
+        await expect(streamer.connect(timelockSigner).terminateStream(newTerminationTimestamp)).revertedWithCustomError(
+            streamer,
+            "DurationTooShort"
+        );
+    });
+
+    it("Should let only stream creator terminate", async () => {
+        const { streamer, user } = await restore();
+        await expect(streamer.connect(user).terminateStream(0)).revertedWithCustomError(streamer, "NotStreamCreator");
+    });
+
+    it("Should not let terminate more than once", async () => {
+        const { streamer } = await restore();
+        await streamer.connect(timelockSigner).terminateStream(0);
+        await time.increase(time.duration.days(60));
+        await expect(streamer.connect(timelockSigner).terminateStream(0)).revertedWithCustomError(
+            streamer,
+            "AlreadyTerminated"
+        );
+    });
+
+    it("Should let stream creator sweep before initialization", async () => {
+        const { streamer, user } = await deployStreamer();
+        const amount = ethers.parseEther("100");
+        await comptrollerV2.connect(timelockSigner)._grantComp(streamer, amount);
+        await expect(streamer.connect(user).sweepRemaining()).revertedWithCustomError(streamer, "NotStreamCreator");
+        const tx = streamer.connect(timelockSigner).sweepRemaining();
+        await expect(tx).changeTokenBalance(COMP, returnAddress, amount);
+    });
+
+    it("Should rescue token", async () => {
+        const { streamer } = await restore();
+        const token = await (await ethers.getContractFactory("MockERC20")).deploy("Mock token", "MOCK", 18);
+        const amount = ethers.parseEther("100");
+        await token.mint(streamer, amount);
+        const tx = streamer.connect(timelockSigner).rescueToken(token);
+        await expect(tx).changeTokenBalance(token, returnAddress, amount);
+    });
+
+    it("Should not let rescue streaming asset", async () => {
+        const { streamer } = await restore();
+        await expect(streamer.connect(timelockSigner).rescueToken(COMP)).revertedWithCustomError(
+            streamer,
+            "CantRescueStreamingAsset"
+        );
+    });
+
+    it("Only stream creator can rescue token", async () => {
+        const { streamer, user } = await restore();
+        const token = await (await ethers.getContractFactory("MockERC20")).deploy("Mock token", "MOCK", 18);
+        const amount = ethers.parseEther("100");
+        await token.mint(streamer, amount);
+        await expect(streamer.connect(user).rescueToken(token)).revertedWithCustomError(streamer, "NotStreamCreator");
     });
 });

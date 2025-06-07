@@ -12,6 +12,7 @@ describe("StreamerFactory", function () {
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.years(1);
+    const minimumNoticePeriod = time.duration.days(90);
 
     const fixture = async () => {
         const [deployer, ...signers] = await ethers.getSigners();
@@ -41,7 +42,8 @@ describe("StreamerFactory", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             );
         await factory
             .connect(streamCreator)
@@ -56,7 +58,8 @@ describe("StreamerFactory", function () {
                 slippage,
                 claimCooldown,
                 sweepCooldown,
-                streamDuration
+                streamDuration,
+                minimumNoticePeriod
             );
 
         const streamer = await ethers.getContractAt("Streamer", streamerAddress);
@@ -83,7 +86,8 @@ describe("StreamerFactory", function () {
                     slippage,
                     claimCooldown,
                     sweepCooldown,
-                    streamDuration
+                    streamDuration,
+                    minimumNoticePeriod
                 )
         ).revertedWithCustomError(factory, "AssetsMatch");
     });

@@ -4,7 +4,7 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-help
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { IERC20, MultiplicativePriceFeed, Streamer } from "../typechain-types";
 
-describe("Streamer with MultiplicativePriceFeed", function () {
+describe("[skip-on-coverage]Streamer with MultiplicativePriceFeed", function () {
     const WBTCAddress = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
         WBTC_ORACLE = "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
         AAVE_ETH_ORACLE = "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012",
@@ -14,6 +14,7 @@ describe("Streamer with MultiplicativePriceFeed", function () {
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.days(90);
+    const minimumNoticePeriod = time.duration.days(40);
     let WBTC: IERC20;
     let WBTC_HOLDER: HardhatEthersSigner;
     let Aave_MultiplicativeOracle: MultiplicativePriceFeed;
@@ -52,7 +53,8 @@ describe("Streamer with MultiplicativePriceFeed", function () {
             slippage,
             claimCooldown,
             sweepCooldown,
-            streamDuration
+            streamDuration,
+            minimumNoticePeriod
         );
         await streamer.waitForDeployment();
         return { streamer, user, streamCreator, returnAddress, signers };

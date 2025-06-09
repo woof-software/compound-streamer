@@ -26,6 +26,8 @@ contract Streamer is IStreamer {
     uint256 public constant SLIPPAGE_SCALE = 1e8;
     /// @notice Minimal required duration for all duration parameters.
     uint256 public constant MIN_DURATION = 1 days;
+    /// @notice Minimal number of decimals allowed for tokens and price feeds.
+    uint8 public constant MIN_DECIMALS = 6;
 
     /// @notice The address of asset used for distribution.
     IERC20 public immutable streamingAsset;
@@ -104,8 +106,21 @@ contract Streamer is IStreamer {
         if (_streamDuration < MIN_DURATION) revert DurationTooShort();
         if (_minimumNoticePeriod < MIN_DURATION) revert DurationTooShort();
         if (_minimumNoticePeriod > _streamDuration) revert NoticePeriodExceedsStreamDuration();
-        streamingAssetOracleDecimals = AggregatorV3Interface(_streamingAssetOracle).decimals();
-        nativeAssetOracleDecimals = AggregatorV3Interface(_nativeAssetOracle).decimals();
+        streamingAssetOracleDecimals = _streamingAssetOracle.decimals();
+        nativeAssetOracleDecimals = _nativeAssetOracle.decimals();
+        if (
+            _streamingAssetDecimals < MIN_DECIMALS ||
+            _nativeAssetDecimals < MIN_DECIMALS ||
+            streamingAssetOracleDecimals < MIN_DECIMALS ||
+            nativeAssetOracleDecimals < MIN_DECIMALS
+        ) revert DecimalsNotInBounds();
+        (, int256 nativeAssetPrice, , , ) = _nativeAssetOracle.latestRoundData();
+        if (nativeAssetPrice <= 0) revert InvalidPrice();
+        if (
+            (_nativeAssetStreamingAmount * uint256(nativeAssetPrice)) / 10 ** nativeAssetOracleDecimals <
+            10 ** _nativeAssetDecimals
+        ) revert StreamingAmountTooLow();
+
         streamingAsset = _streamingAsset;
         streamingAssetOracle = _streamingAssetOracle;
         nativeAssetOracle = _nativeAssetOracle;
@@ -253,10 +268,10 @@ contract Streamer is IStreamer {
     /// @dev The price of streaming asset is reduced by the slippage to account for price fluctuations.
     /// @return Amount of Streaming asset.
     function calculateStreamingAssetAmount(uint256 nativeAssetAmount) public view returns (uint256) {
-        (, int256 streamingAssetPrice, , , ) = AggregatorV3Interface(streamingAssetOracle).latestRoundData();
+        (, int256 streamingAssetPrice, , , ) = streamingAssetOracle.latestRoundData();
         if (streamingAssetPrice <= 0) revert InvalidPrice();
 
-        (, int256 nativeAssetPrice, , , ) = AggregatorV3Interface(nativeAssetOracle).latestRoundData();
+        (, int256 nativeAssetPrice, , , ) = nativeAssetOracle.latestRoundData();
         if (nativeAssetPrice <= 0) revert InvalidPrice();
 
         uint256 streamingAssetPriceScaled = (scaleAmount(
@@ -285,10 +300,10 @@ contract Streamer is IStreamer {
     /// (For cases where the Streamer doesn't have enough Streaming asset to distribute).
     /// @return Amount of Native asset.
     function calculateNativeAssetAmount(uint256 streamingAssetAmount) public view returns (uint256) {
-        (, int256 streamingAssetPrice, , , ) = AggregatorV3Interface(streamingAssetOracle).latestRoundData();
+        (, int256 streamingAssetPrice, , , ) = streamingAssetOracle.latestRoundData();
         if (streamingAssetPrice <= 0) revert InvalidPrice();
 
-        (, int256 nativeAssetPrice, , , ) = AggregatorV3Interface(nativeAssetOracle).latestRoundData();
+        (, int256 nativeAssetPrice, , , ) = nativeAssetOracle.latestRoundData();
         if (nativeAssetPrice <= 0) revert InvalidPrice();
 
         // Streaming asset price is reduced by slippage to account for price fluctuations

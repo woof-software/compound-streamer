@@ -31,6 +31,8 @@ interface IStreamer {
     error SweepCooldownNotPassed();
     error AlreadyTerminated();
     error NoticePeriodExceedsStreamDuration();
+    error DecimalsNotInBounds();
+    error StreamingAmountTooLow();
 
     function initialize() external;
 

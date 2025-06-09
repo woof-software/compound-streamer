@@ -1,0 +1,14 @@
+[
+    "constructor(address priceFeedA_, address priceFeedB_, uint8 decimals_, string description_)",
+    "error BadDecimals()",
+    "error InvalidInt256()",
+    "function VERSION() view returns (uint256)",
+    "function combinedScale() view returns (int256)",
+    "function decimals() view returns (uint8)",
+    "function description() view returns (string)",
+    "function latestRoundData() view returns (uint80, int256, uint256, uint256, uint80)",
+    "function priceFeedA() view returns (address)",
+    "function priceFeedB() view returns (address)",
+    "function priceFeedScale() view returns (int256)",
+    "function version() pure returns (uint256)"
+]

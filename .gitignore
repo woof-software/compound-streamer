@@ -12,6 +12,10 @@ node_modules/
 /typechain/
 /typechain-types/
 
+# Foundry.
+/out/
+/cache_forge/
+
 # `solidity-coverage`.
 /coverage/
 /coverage.json

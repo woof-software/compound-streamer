@@ -8,6 +8,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { StreamState, IStreamer } from "./interfaces/IStreamer.sol";
 
 /// @title Streamer
+/// @author WOOF! Software
 /// @notice This contract streams a certain amount of native asset in a form of streaming asset to the recipient over a specified streaming duration.
 /// The contract is designed to work with a pair of Chainlink oracles: Native Asset / USD and Streaming Asset / USD. However, can support any oracle which supports AggregatorV3Interface.
 /// Streaming asset is accrued linearly over a streaming duration, unlocking a portion of Streaming asset each second. Recipient can claim any time during and after the stream.

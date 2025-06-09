@@ -9,6 +9,7 @@ import { IStreamerFactory } from "./interfaces/IStreamerFactory.sol";
 import { Streamer } from "./Streamer.sol";
 
 /// @title Streamer Factory
+/// @author WOOF! Software
 /// @notice a Factory smart contract used for a safe deployment of new Streamer instances.
 /// Anyone can use this streamer to deploy new streamers.
 contract StreamerFactory is IStreamerFactory {

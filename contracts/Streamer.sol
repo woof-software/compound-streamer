@@ -7,18 +7,19 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { StreamState, IStreamer } from "./interfaces/IStreamer.sol";
 
-/// @title Streamer
-/// @author WOOF! Software
-/// @notice This contract streams a certain amount of native asset in a form of streaming asset to the recipient over a specified streaming duration.
-/// The contract is designed to work with a pair of Chainlink oracles: Native Asset / USD and Streaming Asset / USD. However, can support any oracle which supports AggregatorV3Interface.
-/// Streaming asset is accrued linearly over a streaming duration, unlocking a portion of Streaming asset each second. Recipient can claim any time during and after the stream.
-/// Stream Creator is able to:
-///     * rescue any ERC-20 token stuck in contract except of streaming asset.
-///     * terminate the stream until the stream end. In this case, the distribution of streaming asset will continue till the termination timestamp.
-///     * sweep remaining streaming asset tokens after stream end or termination timestamp (in case the stream is terminated).
-/// The streaming amount is specified in the native asset units. During the claiming, accrued native asset amount is calculated into streaming asset.
-/// All the tokens transferred via sweepRemaining or rescueToken are sent to the returnAddress.
-/// Anyone is able to call claim or sweepRemaining after a specified duration. Assets will still be transferred to the recipient and returnAddress accordingly.
+/** @title Streamer
+ * @author WOOF! Software
+ * @notice This contract streams a certain amount of native asset in a form of streaming asset to the recipient over a specified streaming duration.
+ * - The contract is designed to work with a pair of Chainlink oracles: Native Asset / USD and Streaming Asset / USD. However, can support any oracle which supports AggregatorV3Interface.
+ * - Streaming asset is accrued linearly over a streaming duration, unlocking a portion of Streaming asset each second. Recipient can claim any time during and after the stream.
+ * - Stream Creator is able to:
+ *  1. rescue any ERC-20 token stuck in contract except of streaming asset.
+ *  2. terminate the stream until the stream end. In this case, the distribution of streaming asset will continue till the termination timestamp.
+ *  3. sweep remaining streaming asset tokens after stream end or termination timestamp (in case the stream is terminated).
+ * - The streaming amount is specified in the native asset units. During the claiming, accrued native asset amount is calculated into streaming asset.
+ * - All the tokens transferred via sweepRemaining or rescueToken are sent to the returnAddress.
+ * - Anyone is able to call claim or sweepRemaining after a specified duration. Assets will still be transferred to the recipient and returnAddress accordingly.
+ */
 contract Streamer is IStreamer {
     using SafeERC20 for IERC20;
 
@@ -139,11 +140,12 @@ contract Streamer is IStreamer {
         minimumNoticePeriod = _minimumNoticePeriod;
     }
 
-    /// @notice Initializes the stream by setting start timestamp and validating that the contract has enough Streaming asset.
-    /// Streaming asset must be transferred to the contract's balance before function is called.
-    /// Note. It is recommended to send a sufficient amount of Streaming asset in order to ensure the correct work of the Streamer.
-    /// The extra amount depends of the volatility of assets. In general, we recommend sending extra 10% of the necessary Streaming asset amount.
-    /// Use the function `calculateStreamingAssetAmount` to determine the amount of Streaming asset to transfer.
+    /** @notice Initializes the stream by setting start timestamp and validating that the contract has enough Streaming asset.
+     * @dev Streaming asset must be transferred to the contract's balance before function is called.
+     * @dev It is recommended to send a sufficient amount of Streaming asset in order to ensure the correct work of the Streamer.
+     * The extra amount depends on the volatility of assets. In general, we recommend sending extra 10% of the necessary Streaming asset amount.
+     * @dev Use the function `calculateStreamingAssetAmount` to determine the amount of Streaming asset to transfer.
+     */
     function initialize() external {
         if (state != StreamState.NOT_INITIALIZED) revert AlreadyInitialized();
         if (msg.sender != streamCreator) revert NotStreamCreator();
@@ -158,11 +160,12 @@ contract Streamer is IStreamer {
         emit Initialized();
     }
 
-    /// @notice Claims the accrued amount of Streaming asset to the recipient's address.
-    /// @dev The stream must be initialized.
-    /// @dev Can be called by the recipient or anyone after claim cooldown has passed since the last claim timestamp.
-    /// @dev In case the contract doesn't have enough Streaming asset on its balance, the whole balance will be sent. The stream owner will have to replenish
-    /// the balance in order to resume the stream.
+    /** @notice Claims the accrued amount of Streaming asset to the recipient's address.
+     * @dev The stream must be initialized.
+     * @dev Can be called by the recipient or anyone after claim cooldown has passed since the last claim timestamp.
+     * @dev In case the contract doesn't have enough Streaming asset on its balance, the whole balance will be sent. The stream owner will have to replenish
+     * the balance in order to resume the stream.
+     */
     function claim() external {
         if (state == StreamState.NOT_INITIALIZED) revert NotInitialized();
         if (msg.sender != recipient && block.timestamp < lastClaimTimestamp + claimCooldown) revert NotReceiver();
@@ -205,10 +208,11 @@ contract Streamer is IStreamer {
         emit Terminated(terminationTimestamp);
     }
 
-    /// @notice Allows to sweep all the Streaming asset tokens from the Streamer's balance.
-    /// @dev Can be called by Stream Creator before initialization without any additional conditions.
-    /// @dev After the end of stream (Either after stream duration or after termination timestamp if termination was called), can be called
-    /// by Stream Creator or anyone after sweep cooldown has passed.
+    /** @notice Allows to sweep all the Streaming asset tokens from the Streamer's balance.
+     * @dev Can be called by Stream Creator before initialization without any additional conditions.
+     * @dev After the end of stream (Either after stream duration or after termination timestamp if termination was called), can be called
+     * by Stream Creator or anyone after sweep cooldown has passed.
+     */
     function sweepRemaining() external {
         if (state == StreamState.NOT_INITIALIZED) {
             if (msg.sender != streamCreator) {
@@ -233,9 +237,10 @@ contract Streamer is IStreamer {
         emit Swept(remainingBalance);
     }
 
-    /// @notice Allows to transfer any ERC-20 token except the Streaming asset from the Streamer's balance.
-    /// @param token Address of ERC-20 token to transfer.
-    /// @dev Can only be called by Stream Creator.
+    /** @notice Allows to transfer any ERC-20 token except the Streaming asset from the Streamer's balance.
+     * @param token Address of ERC-20 token to transfer.
+     * @dev Can only be called by Stream Creator.
+     */
     function rescueToken(IERC20 token) external onlyStreamCreator {
         if (token == streamingAsset) revert CantRescueStreamingAsset();
         uint256 balance = token.balanceOf(address(this));
@@ -264,11 +269,12 @@ contract Streamer is IStreamer {
         return totalOwed - nativeAssetSuppliedAmount;
     }
 
-    /// @notice Calculates the amount of Streaming asset based on the specified Native asset amount.
-    /// @param nativeAssetAmount The amount of Native asset to be converted to Streaming asset.
-    /// @dev Used in `claim` to calculate the amount Native asset owed in Streaming asset.
-    /// @dev The price of streaming asset is reduced by the slippage to account for price fluctuations.
-    /// @return Amount of Streaming asset.
+    /** @notice Calculates the amount of Streaming asset based on the specified Native asset amount.
+     * @param nativeAssetAmount The amount of Native asset to be converted to Streaming asset.
+     * @dev Used in `claim` to calculate the amount Native asset owed in Streaming asset.
+     * @dev The price of streaming asset is reduced by the slippage to account for price fluctuations.
+     * @return Amount of Streaming asset.
+     */
     function calculateStreamingAssetAmount(uint256 nativeAssetAmount) public view returns (uint256) {
         (, int256 streamingAssetPrice, , , ) = streamingAssetOracle.latestRoundData();
         if (streamingAssetPrice <= 0) revert InvalidPrice();
@@ -295,12 +301,13 @@ contract Streamer is IStreamer {
         return amountinStreamingAsset;
     }
 
-    /// @notice Calculates the amount of Native asset based on the specified Streaming asset amount.
-    /// @param streamingAssetAmount The amount of Streaming asset to be converted to Native asset.
-    /// @dev Used in `initialize` to validate if the Streamer has enough Streaming asset to begin stream.
-    /// @dev Used in `claim` to calculate how much the remaining balance of Streaming asset is equal to the Native Asset
-    /// (For cases where the Streamer doesn't have enough Streaming asset to distribute).
-    /// @return Amount of Native asset.
+    /** @notice Calculates the amount of Native asset based on the specified Streaming asset amount.
+     * @param streamingAssetAmount The amount of Streaming asset to be converted to Native asset.
+     * @dev Used in `initialize` to validate if the Streamer has enough Streaming asset to begin stream.
+     * @dev Used in `claim` to calculate how much the remaining balance of Streaming asset is equal to the Native Asset
+     * (For cases where the Streamer doesn't have enough Streaming asset to distribute).
+     * @return Amount of Native asset.
+     */
     function calculateNativeAssetAmount(uint256 streamingAssetAmount) public view returns (uint256) {
         (, int256 streamingAssetPrice, , , ) = streamingAssetOracle.latestRoundData();
         if (streamingAssetPrice <= 0) revert InvalidPrice();
@@ -327,11 +334,12 @@ contract Streamer is IStreamer {
         return amountInNativeAsset;
     }
 
-    /// @notice Scales an amount from one decimal representation to another.
-    /// @param amount The amount to be scaled.
-    /// @param fromDecimals The number of decimals of the original amount.
-    /// @param toDecimals The number of decimals of the target amount.
-    /// @return The scaled amount.
+    /** @notice Scales an amount from one decimal representation to another.
+     * @param amount The amount to be scaled.
+     * @param fromDecimals The number of decimals of the original amount.
+     * @param toDecimals The number of decimals of the target amount.
+     * @return The scaled amount.
+     */
     function scaleAmount(uint256 amount, uint256 fromDecimals, uint256 toDecimals) internal pure returns (uint256) {
         if (fromDecimals > toDecimals) {
             return amount / (10 ** (fromDecimals - toDecimals));

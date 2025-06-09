@@ -8,10 +8,11 @@ import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { IStreamerFactory } from "./interfaces/IStreamerFactory.sol";
 import { Streamer } from "./Streamer.sol";
 
-/// @title Streamer Factory
-/// @author WOOF! Software
-/// @notice A Factory smart contract used for a safe deployment of new Streamer instances.
-/// Anyone can use this Smart contract to deploy new streamers.
+/** @title Streamer Factory
+ * @author WOOF! Software
+ * @notice A Factory smart contract used for a safe deployment of new Streamer instances.
+ * Anyone can use this Smart contract to deploy new streamers.
+ */
 contract StreamerFactory is IStreamerFactory {
     /// @notice A number used to generate a unique salt for Create2.
     uint256 public counter;

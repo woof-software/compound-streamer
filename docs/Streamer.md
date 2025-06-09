@@ -51,7 +51,7 @@ The address of asset used for distribution.
 contract AggregatorV3Interface streamingAssetOracle
 ```
 
-the address of price feed oracle for Streaming asset. Must return the price in USD.
+The address of price feed oracle for Streaming asset. Must return the price in USD.
 
 ### nativeAssetOracle
 
@@ -59,7 +59,7 @@ the address of price feed oracle for Streaming asset. Must return the price in U
 contract AggregatorV3Interface nativeAssetOracle
 ```
 
-the address of price feed oracle for Native asset. Must return the price in USD.
+The address of price feed oracle for Native asset. Must return the price in USD.
 
 ### returnAddress
 
@@ -99,7 +99,7 @@ Amount of asset to be distributed. Specified in the Native asset units.
 uint256 slippage
 ```
 
-The slippage for the Streaming asset oracle's price.
+A flat percentage added to the price of the Streaming asset during calculation.
 
 ### claimCooldown
 
@@ -246,7 +246,7 @@ Use the function `calculateStreamingAssetAmount` to determine the amount of Stre
 function claim() external
 ```
 
-Claims the accrued amount of Streaming asset to the recipient's balance.
+Claims the accrued amount of Streaming asset to the recipient's address.
 
 _The stream must be initialized.
 Can be called by the recipient or anyone after claim cooldown has passed since the last claim timestamp.

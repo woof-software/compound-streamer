@@ -2,8 +2,8 @@
 
 ## StreamerFactory
 
-a Factory smart contract used for a safe deployment of new Streamer instances.
-Anyone can use this streamer to deploy new streamers.
+A Factory smart contract used for a safe deployment of new Streamer instances.
+Anyone can use this Smart contract to deploy new streamers.
 
 ### counter
 

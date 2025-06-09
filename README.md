@@ -1,4 +1,4 @@
-# Solidity base using Hardhat and Foundry
+# Compound Streamer repository using Hardhat and Foundry
 
 ## Installation
 
@@ -52,3 +52,8 @@ pnpm run clean
 ```
 
 Afterwards, try again.
+
+## Streamer documentation
+
+[NatSpec documentation](./docs/)
+[Additional documentation](./extra-docs/)

@@ -92,6 +92,7 @@ describe("StreamerFactory", function () {
         ).revertedWithCustomError(factory, "AssetsMatch");
     });
 
+    // This test is currently commented as it would require to pick up a certain deployer's address in order to produce the issue
     // it("Should revert if streamer is already deployed (same deployer and salt)", async () => {
     //     const { signers, factory } = await restore();
     //     const returnAddress = signers[0];

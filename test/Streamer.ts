@@ -100,7 +100,7 @@ describe("Streamer", function () {
         expect(await streamer.returnAddress()).to.equal(returnAddress);
         expect(await streamer.streamCreator()).to.equal(streamCreator);
         expect(await streamer.recipient()).to.equal(user);
-        expect(await streamer.streamingAmount()).to.equal(streamingAmount);
+        expect(await streamer.nativeAssetStreamingAmount()).to.equal(streamingAmount);
         expect(await streamer.slippage()).to.equal(slippage);
         expect(await streamer.claimCooldown()).to.equal(claimCooldown);
         expect(await streamer.sweepCooldown()).to.equal(sweepCooldown);
@@ -566,7 +566,7 @@ describe("Streamer", function () {
         // Sweep remaining
         const remainingBalance = await COMP.balanceOf(streamer);
         expect(await streamer.calculateNativeAssetAmount(remainingBalance)).to.be.closeTo(
-            (await streamer.streamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
+            (await streamer.nativeAssetStreamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
             DUST
         );
         tx = streamer.connect(timelockSigner).sweepRemaining();
@@ -604,7 +604,7 @@ describe("Streamer", function () {
         // Sweep remaining
         const remainingBalance = await COMP.balanceOf(streamer);
         expect(await streamer.calculateNativeAssetAmount(remainingBalance)).to.be.closeTo(
-            (await streamer.streamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
+            (await streamer.nativeAssetStreamingAmount()) - (await streamer.nativeAssetSuppliedAmount()),
             DUST
         );
         tx = streamer.connect(timelockSigner).sweepRemaining();

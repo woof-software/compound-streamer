@@ -40,7 +40,7 @@ contract Streamer is IStreamer {
     /// @notice The recipient of streaming asset.
     address public immutable recipient;
     /// @notice Amount of asset to be distributed. Specified in the Native asset units.
-    uint256 public immutable streamingAmount;
+    uint256 public immutable nativeAssetStreamingAmount;
     /// @notice The slippage for the Streaming asset oracle's price.
     uint256 public immutable slippage;
     /// @notice A period of time since last claim timestamp after which anyone can call claim.
@@ -86,7 +86,7 @@ contract Streamer is IStreamer {
         address _recipient,
         uint8 _streamingAssetDecimals,
         uint8 _nativeAssetDecimals,
-        uint256 _streamingAmount,
+        uint256 _nativeAssetStreamingAmount,
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _sweepCooldown,
@@ -97,7 +97,7 @@ contract Streamer is IStreamer {
         if (_streamCreator == address(0)) revert ZeroAddress();
         if (_returnAddress == address(0)) revert ZeroAddress();
         if (address(_streamingAsset) == address(0)) revert ZeroAddress();
-        if (_streamingAmount == 0) revert ZeroAmount();
+        if (_nativeAssetStreamingAmount == 0) revert ZeroAmount();
         if (_slippage > SLIPPAGE_SCALE) revert SlippageExceedsScaleFactor();
         if (_claimCooldown < MIN_DURATION) revert DurationTooShort();
         if (_sweepCooldown < MIN_DURATION) revert DurationTooShort();
@@ -114,7 +114,7 @@ contract Streamer is IStreamer {
         recipient = _recipient;
         streamingAssetDecimals = _streamingAssetDecimals;
         nativeAssetDecimals = _nativeAssetDecimals;
-        streamingAmount = _streamingAmount;
+        nativeAssetStreamingAmount = _nativeAssetStreamingAmount;
         slippage = _slippage;
         claimCooldown = _claimCooldown;
         sweepCooldown = _sweepCooldown;
@@ -135,7 +135,8 @@ contract Streamer is IStreamer {
         state = StreamState.ONGOING;
 
         uint256 balance = streamingAsset.balanceOf(address(this));
-        if (calculateNativeAssetAmount(balance) < streamingAmount) revert NotEnoughBalance(balance, streamingAmount);
+        if (calculateNativeAssetAmount(balance) < nativeAssetStreamingAmount)
+            revert NotEnoughBalance(balance, nativeAssetStreamingAmount);
 
         emit Initialized();
     }
@@ -228,7 +229,7 @@ contract Streamer is IStreamer {
     /// @notice Calculates the amount of asset accrued since the last claiming
     /// @return Amount of accrued asset in Native asset units.
     function getNativeAssetAmountOwed() public view returns (uint256) {
-        if (nativeAssetSuppliedAmount >= streamingAmount) {
+        if (nativeAssetSuppliedAmount >= nativeAssetStreamingAmount) {
             return 0;
         }
         uint256 streamEnd = state == StreamState.TERMINATED ? terminationTimestamp : startTimestamp + streamDuration;
@@ -236,12 +237,12 @@ contract Streamer is IStreamer {
 
         if (block.timestamp < streamEnd) {
             uint256 elapsed = block.timestamp - startTimestamp;
-            totalOwed = (streamingAmount * elapsed) / streamDuration;
+            totalOwed = (nativeAssetStreamingAmount * elapsed) / streamDuration;
         } else {
             // If Stream is terminated, calculate amount accrued before termination timestamp
             if (state == StreamState.TERMINATED)
-                totalOwed = (streamingAmount * (streamEnd - startTimestamp)) / streamDuration;
-            else totalOwed = streamingAmount;
+                totalOwed = (nativeAssetStreamingAmount * (streamEnd - startTimestamp)) / streamDuration;
+            else totalOwed = nativeAssetStreamingAmount;
         }
         return totalOwed - nativeAssetSuppliedAmount;
     }

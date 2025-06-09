@@ -16,7 +16,7 @@ interface IStreamerFactory {
         AggregatorV3Interface _nativeAssetOracle,
         address _returnAddress,
         address _recipient,
-        uint256 _streamingAmount,
+        uint256 _nativeAssetStreamingAmount,
         uint256 _slippage,
         uint256 _claimCooldown,
         uint256 _finishCooldown,

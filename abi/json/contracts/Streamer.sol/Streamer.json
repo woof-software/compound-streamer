@@ -43,7 +43,7 @@
             },
             {
                 "internalType": "uint256",
-                "name": "_streamingAmount",
+                "name": "_nativeAssetStreamingAmount",
                 "type": "uint256"
             },
             {
@@ -429,6 +429,19 @@
     },
     {
         "inputs": [],
+        "name": "nativeAssetStreamingAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "nativeAssetSuppliedAmount",
         "outputs": [
             {
@@ -534,19 +547,6 @@
     {
         "inputs": [],
         "name": "streamDuration",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "streamingAmount",
         "outputs": [
             {
                 "internalType": "uint256",

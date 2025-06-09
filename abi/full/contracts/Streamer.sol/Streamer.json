@@ -1,5 +1,5 @@
 [
-    "constructor(address _streamingAsset, address _streamingAssetOracle, address _nativeAssetOracle, address _returnAddress, address _streamCreator, address _recipient, uint8 _streamingAssetDecimals, uint8 _nativeAssetDecimals, uint256 _streamingAmount, uint256 _slippage, uint256 _claimCooldown, uint256 _sweepCooldown, uint256 _streamDuration, uint256 _minimumNoticePeriod)",
+    "constructor(address _streamingAsset, address _streamingAssetOracle, address _nativeAssetOracle, address _returnAddress, address _streamCreator, address _recipient, uint8 _streamingAssetDecimals, uint8 _nativeAssetDecimals, uint256 _nativeAssetStreamingAmount, uint256 _slippage, uint256 _claimCooldown, uint256 _sweepCooldown, uint256 _streamDuration, uint256 _minimumNoticePeriod)",
     "error AlreadyInitialized()",
     "error AlreadyTerminated()",
     "error CantRescueStreamingAsset()",
@@ -36,6 +36,7 @@
     "function nativeAssetDecimals() view returns (uint8)",
     "function nativeAssetOracle() view returns (address)",
     "function nativeAssetOracleDecimals() view returns (uint8)",
+    "function nativeAssetStreamingAmount() view returns (uint256)",
     "function nativeAssetSuppliedAmount() view returns (uint256)",
     "function recipient() view returns (address)",
     "function rescueToken(address token)",
@@ -45,7 +46,6 @@
     "function state() view returns (uint8)",
     "function streamCreator() view returns (address)",
     "function streamDuration() view returns (uint256)",
-    "function streamingAmount() view returns (uint256)",
     "function streamingAsset() view returns (address)",
     "function streamingAssetClaimedAmount() view returns (uint256)",
     "function streamingAssetDecimals() view returns (uint8)",

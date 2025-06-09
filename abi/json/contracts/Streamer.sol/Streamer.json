@@ -97,6 +97,11 @@
     },
     {
         "inputs": [],
+        "name": "DecimalsNotInBounds",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "DurationTooShort",
         "type": "error"
     },
@@ -164,6 +169,11 @@
     },
     {
         "inputs": [],
+        "name": "StreamingAmountTooLow",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "SweepCooldownNotPassed",
         "type": "error"
     },
@@ -194,13 +204,13 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "compAmount",
+                "name": "streamingAssetAmount",
                 "type": "uint256"
             },
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "usdcAmount",
+                "name": "nativeAssetAmount",
                 "type": "uint256"
             }
         ],
@@ -257,6 +267,19 @@
         ],
         "name": "Terminated",
         "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "MIN_DECIMALS",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [],

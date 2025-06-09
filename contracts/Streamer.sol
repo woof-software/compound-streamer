@@ -79,6 +79,8 @@ contract Streamer is IStreamer {
         _;
     }
 
+    /// @dev Decimals for tokens and price feeds should be between 6 and 18 to ensure proper calculations.
+    /// USD value of `_nativeAssetStreamingAmount` must be equal to at least 1$.
     constructor(
         IERC20 _streamingAsset,
         AggregatorV3Interface _streamingAssetOracle,

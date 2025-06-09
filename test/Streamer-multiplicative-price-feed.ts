@@ -62,7 +62,7 @@ describe("[skip-on-coverage]Streamer with MultiplicativePriceFeed", function () 
 
     const initStreamer = async (streamer: Streamer, nativeAssetAmount: bigint, sender: HardhatEthersSigner) => {
         const streamingAssetAmount = await streamer.calculateStreamingAssetAmount(
-            nativeAssetAmount + ethers.parseEther("0.000001")
+            nativeAssetAmount + (nativeAssetAmount * 10n) / 100n
         );
         await WBTC.connect(WBTC_HOLDER).transfer(streamer, streamingAssetAmount);
         await streamer.connect(sender).initialize();
@@ -92,8 +92,11 @@ describe("[skip-on-coverage]Streamer with MultiplicativePriceFeed", function () 
 
     it("Check returned prices", async () => {
         const { streamer } = await restore();
-        const streamingAssetAmount = await streamer.calculateStreamingAssetAmount(ethers.parseEther("1"));
-        console.log("Streaming asset amount: ", streamingAssetAmount);
-        console.log("Native asset amount: ", await streamer.calculateNativeAssetAmount(streamingAssetAmount));
+        const _nativeAssetAmount = ethers.parseEther("1");
+        const streamingAssetAmount = await streamer.calculateStreamingAssetAmount(_nativeAssetAmount);
+        expect(await streamer.calculateNativeAssetAmount(streamingAssetAmount)).to.be.closeTo(
+            _nativeAssetAmount,
+            ethers.parseEther("0.001")
+        );
     });
 });

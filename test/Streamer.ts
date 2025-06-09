@@ -815,4 +815,12 @@ describe("Streamer", function () {
         await time.increase(time.duration.hours(10));
         await expect(streamer.connect(user).claim()).revertedWithCustomError(streamer, "ZeroAmount");
     });
+
+    it("Should revert termination if stream is not initialized", async () => {
+        const { streamer } = await deployStreamer();
+        await expect(streamer.connect(timelockSigner).terminateStream(0)).revertedWithCustomError(
+            streamer,
+            "TerminationIsAfterStream"
+        );
+    });
 });

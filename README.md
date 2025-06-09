@@ -115,6 +115,7 @@ The deployment is performed via `deployStreamer` function of StreamerFactory. Ma
   **Note!** For more details about parameter check the documentation of Streamer.
 
 > Call the function `deployStreamer` with the necessary parameters of a new Streamer.
+
 > **Slippage tip** Set up slippage based on price feed deviation and DEX slippage. In case the COMP/USD price feed deviation is 0.5% and the DEX slippage is 0.5%, it is better to set up a 1% slippage to avoid losing USD value altogether. 
 
 ### Initialization

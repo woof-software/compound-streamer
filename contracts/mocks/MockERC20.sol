@@ -7,7 +7,7 @@ contract MockERC20 is ERC20 {
     uint8 internal immutable _decimals;
 
     constructor(string memory name, string memory symbol, uint8 _dec) ERC20(name, symbol) {
-        require(_dec <= 30, "Invalid Decimals!");
+        //require(_dec <= 30, "Invalid Decimals!");
         _decimals = _dec;
     }
 

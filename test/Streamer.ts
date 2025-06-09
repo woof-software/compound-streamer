@@ -370,6 +370,109 @@ describe("Streamer", function () {
         ).revertedWithCustomError(streamerFactory, "NoticePeriodExceedsStreamDuration");
     });
 
+    it("Should not deploy if decimals are less than minimum", async () => {
+        const [user] = await ethers.getSigners();
+        const streamerFactory = await ethers.getContractFactory("Streamer");
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                COMP_ORACLE,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                5,
+                6,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "DecimalsNotInBounds");
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                COMP_ORACLE,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                2,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "DecimalsNotInBounds");
+        // Deploy Mock oracle with low decimals
+        const mockOracle = await (await ethers.getContractFactory("SimplePriceFeed")).deploy(0, 5);
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                mockOracle,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                6,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "DecimalsNotInBounds");
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                COMP_ORACLE,
+                mockOracle,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                6,
+                streamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "DecimalsNotInBounds");
+    });
+
+    it("Should not deploy if streaming amount is less than 1 dollar", async () => {
+        const [user] = await ethers.getSigners();
+        const streamerFactory = await ethers.getContractFactory("Streamer");
+        const newStreamingAmount = ethers.parseUnits("0.8", 6);
+        await expect(
+            streamerFactory.deploy(
+                CompAddress,
+                COMP_ORACLE,
+                USDC_ORACLE,
+                returnAddress,
+                streamCreator,
+                user,
+                18,
+                6,
+                newStreamingAmount,
+                slippage,
+                claimCooldown,
+                sweepCooldown,
+                streamDuration,
+                minimumNoticePeriod
+            )
+        ).revertedWithCustomError(streamerFactory, "StreamingAmountTooLow");
+    });
+
     it("Should claim", async () => {
         const { streamer, user } = await restore();
         await time.increase(time.duration.days(3));

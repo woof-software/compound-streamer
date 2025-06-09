@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { network, ethers } from "hardhat";
-import { loadFixture, time } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, time, SnapshotRestorer, takeSnapshot } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 import { IComptrollerV2, IERC20, Streamer } from "../typechain-types";
 
@@ -686,5 +686,30 @@ describe("Streamer", function () {
         const amount = ethers.parseEther("100");
         await token.mint(streamer, amount);
         await expect(streamer.connect(user).rescueToken(token)).revertedWithCustomError(streamer, "NotStreamCreator");
+    });
+
+    it("Should distribute same amount of streaming asset for 6 month with and without termination", async () => {
+        const { streamer, user } = await restore();
+        // Skip 5 month
+        await time.increase(time.duration.days(5 * 30));
+        const snapshot = await takeSnapshot();
+        // Skip 1 more month and claim for 6 month
+        await time.increase(time.duration.days(30));
+        await streamer.connect(user).claim();
+        const balWithoutTermination = await COMP.balanceOf(user);
+        await snapshot.restore();
+        // Terminate, skip 1 month and claim
+        await streamer.connect(timelockSigner).terminateStream(0);
+        await time.increase(time.duration.days(30));
+        await streamer.connect(user).claim();
+        const balWithTermination = await COMP.balanceOf(user);
+        expect(balWithoutTermination).to.equal(balWithTermination);
+        // Check that this a correct amount of asset for 6 month duration
+        const expectedNativeAsset = (streamingAmount * BigInt(time.duration.days(6 * 30) + 1)) / BigInt(streamDuration);
+        const expectedStreamingAsset = await streamer.calculateStreamingAssetAmount(expectedNativeAsset);
+        expect(expectedStreamingAsset).to.equal(balWithTermination);
+        // Check that no more asset is accrued after termination
+        await time.increase(time.duration.hours(10));
+        await expect(streamer.connect(user).claim()).revertedWithCustomError(streamer, "ZeroAmount");
     });
 });

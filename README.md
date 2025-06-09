@@ -4,9 +4,9 @@
 
 ## TL;DR
 
-[Streamer.sol](./contracts/Streamer.sol) - The Streamer smart contract is implemented for linear streaming of a native asset's value in the form of another ERC-20 token (streaming asset) to a recipient over a specified time period. It supports `AggregatorV3Interface` to convert between the native and streaming assets based on real-time USD prices, supporting price slippage for streaming asset.
+[Streamer.sol](./contracts/Streamer.sol) - The Streamer smart contract enables linear streaming of value from a native asset to a recipient, denominated in a specified ERC-20 token (the streaming asset), over a defined time period. It integrates with AggregatorV3Interface to convert between the native and streaming assets using real-time USD price feeds. The contract also supports configurable slippage tolerance to account for price volatility in the streaming asset.
 
-Key functionalities:
+Key features:
 
     1. Stream creation and initialization
     2. Accrual and claim of streaming tokens
@@ -16,7 +16,7 @@ Key functionalities:
 
 This contract is typically used for scheduled payments or vesting mechanisms with off-chain enforcement and real-time pricing.
 
-[StreamerFactory.sol](./contracts/StreamerFactory.sol) - The Streamer Factory is a smart contract that enable the deployment of new Streamer instances using `Create2`. The contract allows customazible parameters such as streaming and native assets, price oracles, slippage, cooldowns, and durations during each deployment of Streamer. The Factory allows users to safely and predictably deploy Streamer contracts.
+[StreamerFactory.sol](./contracts/StreamerFactory.sol) - The Streamer Factory is a smart contract that enables the deployment of new Streamer instances using CREATE2, allowing for deterministic and predictable contract addresses. It supports customizable parameters for each deployment, including the streaming and native assets, price oracles, slippage tolerance, cooldown periods, and stream duration. The Factory ensures a safe and flexible way for users to deploy tailored Streamer contracts with full control over configuration.
 
 ## Deployed Contracts
 
@@ -31,26 +31,7 @@ Use [Chainlink](https://docs.chain.link/data-feeds/price-feeds/addresses?network
 
 ### Example 1. Distribute 1M worth of USDC in COMP
 
-There is a need to distribute 1 million USDC worth of COMP tokens over 1-year period. Assuming that the price of COMP is 40$ and 1 USDC = 1 USD:
-
-````md
-```solidity
-deployFactory(
-    0xc00e94cb662c3520282e6f5717214004a7f26888, // Address of COMP
-    0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, // Address of USDC
-    0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5, // Valid COMP/USD Price Feed. 
-    0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, // Valid USDC/USD Price Feed.
-    <RETURN_ADDRESS>, // Address where the surplus of COMP will be returned
-    <RECIPIENT_ADDRESS>, // Stream receiver
-    1000000000000, // $1M with 6 decimals (Minimal required decimals)
-    500000, // A slippage parameter used to reduce the price of the streaming asset. For example, to set slippage to 0.5% use 5e5.
-    604800, // 7 days cooldown. Set cooldown periods in seconds. The minimum allowed cooldown is 1 day. If the current timestamp exceeds lastClaim + CLAIM_COOLDOWN, then anyone can trigger the claim on behalf of the receiver. The receiver will still receive the full amount of the claimed assets. This mechanism ensures that claims are made on a predefined schedule, even if the receiver is inactive.
-    864000, // 10 days cooldown. Set cooldown periods in seconds. The minimum allowed cooldown is 1 day. After the stream ends, a cooldown offset is applied. Once both the stream and cooldown period have passed, any remaining streaming assets can be swept back to the RETURN_ADDRESS
-    31536000, // seconds in 365 days, representing stream duration
-    2592000 // seconds in 30 days representing minimal notice period.
-)
-```
-````
+There is a need to distribute 1 million USDC worth of COMP tokens over 1-year period. Assuming that the price of COMP is $40 and 1 USDC = 1 USD:
 
 ```solidity
 deployFactory(
@@ -67,7 +48,7 @@ deployFactory(
     31536000, // 365 days in seconds (stream duration)
     2592000 // 30-day minimal notice period
 );
-
+```
 
 A total of 2,739 USDC worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information. 
 
@@ -75,24 +56,22 @@ A total of 2,739 USDC worth of COMP will be distributed daily. COMP amount will 
 
 There is a need to distribute 1M worth of USD in Comp tokens. Assuming that the price of COMP is $40:
 
-````md
 ```solidity
 deployFactory(
     0xc00e94cb662c3520282e6f5717214004a7f26888, // Address of COMP
-    0xdac17f958d2ee523a2206206994597c13d831ec7, // Using USDT to represent USD and acquire 6 decimals
-    0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5, // A valid COMP/USD Price Feed
-    0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB, // Constant price feed to return 1 USD
-    <RETURN_ADDRESS>,
-    <RECIPIENT_ADDRESS>,
-    1000000000000, // $1M with 6 decimals (Minimal required decimals)
-    <SLIPPAGE>,
-    <CLAIM_COOLDOWN>,
-    <SWEEP_COOLDOWN>,
-    31536000, // Seconds in 365 days, representing stream duration
-    <MINIMUM_NOTICE_PERIOD>
-)
+    0xdac17f958d2ee523a2206206994597c13d831ec7, // Address of USDT (used to represent USD with 6 decimals)
+    0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5, // Valid COMP/USD price feed
+    0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB, // Constant price feed returning 1 USD
+    0x<RETURN_ADDRESS>, // Address to receive surplus COMP after stream ends
+    0x<RECIPIENT_ADDRESS>, // Stream receiver address
+    1000000000000, // Stream amount: $1M in 6 decimals
+    <SLIPPAGE>, // Slippage parameter (e.g., 5e5 = 0.5% reduction)
+    <CLAIM_COOLDOWN>, // Cooldown (in seconds) before anyone can claim on behalf of receiver
+    <SWEEP_COOLDOWN>, // Cooldown (in seconds) before surplus can be swept back to RETURN_ADDRESS
+    31536000, // Duration of the stream in seconds (365 days)
+    <MINIMUM_NOTICE_PERIOD> // Minimum notice period (in seconds) before stream changes or termination
+);
 ```
-````
 
 A total of 2,739 USD worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information. 
 
@@ -100,24 +79,22 @@ A total of 2,739 USD worth of COMP will be distributed daily. COMP amount will b
 
 There is a need to distribute 1M worth of USDC in WETH. Assuming that the price of WETH is $2500 and 1 USDC = 1 USD:
 
-````md
 ```solidity
 deployFactory(
-    0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2, // Address of Wrapped ETH
-    0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, // Address of USDC
-    0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419, // A valid ETH/USD Price Feed
-    0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, // A valid USDC/USD Price Feed
-    <RETURN_ADDRESS>,
-    <RECIPIENT_ADDRESS>,
-    1000000000000, // $1M with 6 decimals (USDC has 6 decimals)
-    <SLIPPAGE>,
-    <CLAIM_COOLDOWN>,
-    <SWEEP_COOLDOWN>,
-    31536000, // Seconds in 365 days, representing stream duration
-    <MINIMUM_NOTICE_PERIOD>
-)
+    0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2, // Address of Wrapped ETH (WETH)
+    0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48, // Address of USDC (6 decimals)
+    0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419, // Valid ETH/USD price feed
+    0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, // Valid USDC/USD price feed
+    0x<RETURN_ADDRESS>, // Address to receive surplus WETH after stream ends
+    0x<RECIPIENT_ADDRESS>, // Stream receiver address
+    1000000000000, // Stream amount: $1M in 6 decimals
+    <SLIPPAGE>, // Slippage parameter (e.g., 5e5 = 0.5% reduction)
+    <CLAIM_COOLDOWN>, // Cooldown (in seconds) before anyone can claim on behalf of receiver
+    <SWEEP_COOLDOWN>, // Cooldown (in seconds) before surplus can be swept back to RETURN_ADDRESS
+    31536000, // Stream duration in seconds (365 days)
+    <MINIMUM_NOTICE_PERIOD> // Minimum notice period (in seconds) before stream changes or termination
+);
 ```
-````
 
 A total of 2,739 USDC worth of WETH will be distributed daily. WETH amount will be calculated at the moment of claim based on price feed information. 
 

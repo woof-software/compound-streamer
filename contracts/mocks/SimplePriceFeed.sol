@@ -21,6 +21,10 @@ contract SimplePriceFeed is AggregatorV3Interface {
         decimals = decimals_;
     }
 
+    function setPrice(int256 answer_) public {
+        answer = answer_;
+    }
+
     function setRoundData(
         uint80 roundId_,
         int256 answer_,

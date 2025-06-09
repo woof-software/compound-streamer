@@ -98,10 +98,10 @@ contract StreamerTest is Test {
         uint256 streamingAssetPrice,
         uint256 nativeAssetPrice
     ) internal returns (uint256, uint8, uint8, uint8, uint8, uint256, uint256, uint256, uint256, uint256) {
-        streamingTokenDecimals = uint8(bound(streamingTokenDecimals, 6, 18));
-        nativeTokenDecimals = uint8(bound(nativeTokenDecimals, 6, 18));
-        streamingTokenOracleDecimals = uint8(bound(streamingTokenOracleDecimals, 6, 18));
-        nativeTokenOracleDecimals = uint8(bound(nativeTokenOracleDecimals, 6, 18));
+        streamingTokenDecimals = uint8(bound(streamingTokenDecimals, 6, 30));
+        nativeTokenDecimals = uint8(bound(nativeTokenDecimals, 6, 30));
+        streamingTokenOracleDecimals = uint8(bound(streamingTokenOracleDecimals, 6, 30));
+        nativeTokenOracleDecimals = uint8(bound(nativeTokenOracleDecimals, 6, 30));
         streamingAmount = bound(
             streamingAmount,
             10 ** uint256(nativeTokenDecimals - 1),

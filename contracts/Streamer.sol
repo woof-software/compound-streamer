@@ -31,9 +31,9 @@ contract Streamer is IStreamer {
 
     /// @notice The address of asset used for distribution.
     IERC20 public immutable streamingAsset;
-    /// @notice the address of price feed oracle for Streaming asset. Must return the price in USD.
+    /// @notice The address of price feed oracle for Streaming asset. Must return the price in USD.
     AggregatorV3Interface public immutable streamingAssetOracle;
-    /// @notice the address of price feed oracle for Native asset. Must return the price in USD.
+    /// @notice The address of price feed oracle for Native asset. Must return the price in USD.
     AggregatorV3Interface public immutable nativeAssetOracle;
     /// @notice The address which receives tokens during the execution of sweepRemaining and rescueToken functions.
     address public immutable returnAddress;
@@ -43,7 +43,7 @@ contract Streamer is IStreamer {
     address public immutable recipient;
     /// @notice Amount of asset to be distributed. Specified in the Native asset units.
     uint256 public immutable nativeAssetStreamingAmount;
-    /// @notice The slippage for the Streaming asset oracle's price.
+    /// @notice A flat percentage added to the price of the Streaming asset during calculation.
     uint256 public immutable slippage;
     /// @notice A period of time since last claim timestamp after which anyone can call claim.
     uint256 public immutable claimCooldown;
@@ -158,7 +158,7 @@ contract Streamer is IStreamer {
         emit Initialized();
     }
 
-    /// @notice Claims the accrued amount of Streaming asset to the recipient's balance.
+    /// @notice Claims the accrued amount of Streaming asset to the recipient's address.
     /// @dev The stream must be initialized.
     /// @dev Can be called by the recipient or anyone after claim cooldown has passed since the last claim timestamp.
     /// @dev In case the contract doesn't have enough Streaming asset on its balance, the whole balance will be sent. The stream owner will have to replenish

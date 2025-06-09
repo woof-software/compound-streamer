@@ -10,8 +10,8 @@ import { Streamer } from "./Streamer.sol";
 
 /// @title Streamer Factory
 /// @author WOOF! Software
-/// @notice a Factory smart contract used for a safe deployment of new Streamer instances.
-/// Anyone can use this streamer to deploy new streamers.
+/// @notice A Factory smart contract used for a safe deployment of new Streamer instances.
+/// Anyone can use this Smart contract to deploy new streamers.
 contract StreamerFactory is IStreamerFactory {
     /// @notice A number used to generate a unique salt for Create2.
     uint256 public counter;

@@ -9,7 +9,7 @@ enum StreamState {
 
 interface IStreamer {
     event Initialized();
-    event Claimed(uint256 compAmount, uint256 usdcAmount);
+    event Claimed(uint256 streamingAssetAmount, uint256 nativeAssetAmount);
     event Terminated(uint256 terminationTimestamp);
     event Swept(uint256 amount);
     event Rescued(address token, uint256 balance);

@@ -3,15 +3,15 @@
 ## Streamer
 
 This contract streams a certain amount of native asset in a form of streaming asset to the recipient over a specified streaming duration.
-The contract is designed to work with a pair of Chainlink oracles: Native Asset / USD and Streaming Asset / USD. However, can support any oracle which supports AggregatorV3Interface.
-Streaming asset is accrued linearly over a streaming duration, unlocking a portion of Streaming asset each second. Recipient can claim any time during and after the stream.
-Stream Creator is able to:
-    * rescue any ERC-20 token stuck in contract except of streaming asset.
-    * terminate the stream until the stream end. In this case, the distribution of streaming asset will continue till the termination timestamp.
-    * sweep remaining streaming asset tokens after stream end or termination timestamp (in case the stream is terminated).
-The streaming amount is specified in the native asset units. During the claiming, accrued native asset amount is calculated into streaming asset.
-All the tokens transferred via sweepRemaining or rescueToken are sent to the returnAddress.
-Anyone is able to call claim or sweepRemaining after a specified duration. Assets will still be transferred to the recipient and returnAddress accordingly.
+- The contract is designed to work with a pair of Chainlink oracles: Native Asset / USD and Streaming Asset / USD. However, can support any oracle which supports AggregatorV3Interface.
+- Streaming asset is accrued linearly over a streaming duration, unlocking a portion of Streaming asset each second. Recipient can claim any time during and after the stream.
+- Stream Creator is able to:
+ 1. rescue any ERC-20 token stuck in contract except of streaming asset.
+ 2. terminate the stream until the stream end. In this case, the distribution of streaming asset will continue till the termination timestamp.
+ 3. sweep remaining streaming asset tokens after stream end or termination timestamp (in case the stream is terminated).
+- The streaming amount is specified in the native asset units. During the claiming, accrued native asset amount is calculated into streaming asset.
+- All the tokens transferred via sweepRemaining or rescueToken are sent to the returnAddress.
+- Anyone is able to call claim or sweepRemaining after a specified duration. Assets will still be transferred to the recipient and returnAddress accordingly.
 
 ### SLIPPAGE_SCALE
 
@@ -226,7 +226,7 @@ constructor(contract IERC20 _streamingAsset, contract AggregatorV3Interface _str
 ```
 
 _Decimals for tokens and price feeds should be between 6 and 18 to ensure proper calculations.
-USD value of `_nativeAssetStreamingAmount` must be equal to at least 1$._
+USD value of `_nativeAssetStreamingAmount` must be equal to at least $1._
 
 ### initialize
 
@@ -235,10 +235,11 @@ function initialize() external
 ```
 
 Initializes the stream by setting start timestamp and validating that the contract has enough Streaming asset.
-Streaming asset must be transferred to the contract's balance before function is called.
-Note. It is recommended to send a sufficient amount of Streaming asset in order to ensure the correct work of the Streamer.
-The extra amount depends of the volatility of assets. In general, we recommend sending extra 10% of the necessary Streaming asset amount.
-Use the function `calculateStreamingAssetAmount` to determine the amount of Streaming asset to transfer.
+
+_Streaming asset must be transferred to the contract's balance before function is called.
+It is recommended to send a sufficient amount of Streaming asset in order to ensure the correct work of the Streamer.
+The extra amount depends on the volatility of assets. In general, we recommend sending extra 10% of the necessary Streaming asset amount.
+Use the function `calculateStreamingAssetAmount` to determine the amount of Streaming asset to transfer._
 
 ### claim
 

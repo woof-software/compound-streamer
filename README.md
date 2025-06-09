@@ -18,12 +18,14 @@ This contract is typically used for scheduled payments or vesting mechanisms wit
 
 [StreamerFactory.sol](./contracts/StreamerFactory.sol) - The Streamer Factory is a smart contract that enables the deployment of new Streamer instances using CREATE2, allowing for deterministic and predictable contract addresses. It supports customizable parameters for each deployment, including the streaming and native assets, price oracles, slippage tolerance, cooldown periods, and stream duration. The Factory ensures a safe and flexible way for users to deploy tailored Streamer contracts with full control over configuration.
 
+Read more on (Compound Forum)[TODO]
+
 ## Deployed Contracts
 
-| Network | Contract Name       | Address                                    | Link                                                                    |
-|---------|---------------------|--------------------------------------------|-------------------------------------------------------------------------|
-| Mainnet | Steamer Contract    | TBD                                        | TBD                                                                     |
-| Mainnet | Constant Price Feed | 0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB | https://etherscan.io/address/0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB |
+| Network | Contract Name       | Address                                    | Link                                                                            |
+|---------|---------------------|--------------------------------------------|---------------------------------------------------------------------------------|
+| Mainnet | Steamer Contract    | TBD                                        | TBD                                                                             |
+| Mainnet | Constant Price Feed | 0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB | [Link](https://etherscan.io/address/0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB) |
 
 Use [Chainlink](https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1&testnetPage=1) or any other price provider to find proper price feeds. 
 

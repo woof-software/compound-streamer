@@ -56,4 +56,5 @@ Afterwards, try again.
 ## Streamer documentation
 
 [NatSpec documentation](./docs/)
-[Additional documentation](./extra-docs/)
+[Description of smart contracts](./extra-docs/contracts-description.md)
+[Streamer lifecycle](./extra-docs/streamer-lifecycle.md)

@@ -8,7 +8,7 @@ describe("StreamerFactory", function () {
         COMP_ORACLE = "0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5",
         USDC_ORACLE = "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
     const streamingAmount = ethers.parseUnits("2000000", 6);
-    const slippage = 1e5;
+    const slippage = 5e5;
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.years(1);

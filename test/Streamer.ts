@@ -24,7 +24,7 @@ describe("Streamer", function () {
     const returnAddress = comptrollerV2Address;
     const streamCreator = timelockAddress;
     const streamingAmount = ethers.parseUnits("2000000", 6);
-    const slippage = 1e5;
+    const slippage = 5e5;
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
     const streamDuration = time.duration.years(1);

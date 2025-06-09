@@ -21,7 +21,7 @@ event Initialized()
 ### Claimed
 
 ```solidity
-event Claimed(uint256 compAmount, uint256 usdcAmount)
+event Claimed(uint256 streamingAssetAmount, uint256 nativeAssetAmount)
 ```
 
 ### Terminated
@@ -142,6 +142,18 @@ error AlreadyTerminated()
 
 ```solidity
 error NoticePeriodExceedsStreamDuration()
+```
+
+### DecimalsNotInBounds
+
+```solidity
+error DecimalsNotInBounds()
+```
+
+### StreamingAmountTooLow
+
+```solidity
+error StreamingAmountTooLow()
 ```
 
 ### initialize

@@ -29,6 +29,14 @@ uint256 MIN_DURATION
 
 Minimal required duration for all duration parameters.
 
+### MIN_DECIMALS
+
+```solidity
+uint8 MIN_DECIMALS
+```
+
+Minimal number of decimals allowed for tokens and price feeds.
+
 ### streamingAsset
 
 ```solidity
@@ -216,6 +224,9 @@ modifier onlyStreamCreator()
 ```solidity
 constructor(contract IERC20 _streamingAsset, contract AggregatorV3Interface _streamingAssetOracle, contract AggregatorV3Interface _nativeAssetOracle, address _returnAddress, address _streamCreator, address _recipient, uint8 _streamingAssetDecimals, uint8 _nativeAssetDecimals, uint256 _nativeAssetStreamingAmount, uint256 _slippage, uint256 _claimCooldown, uint256 _sweepCooldown, uint256 _streamDuration, uint256 _minimumNoticePeriod) public
 ```
+
+_Decimals for tokens and price feeds should be between 6 and 18 to ensure proper calculations.
+USD value of `_nativeAssetStreamingAmount` must be equal to at least 1$._
 
 ### initialize
 

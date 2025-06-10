@@ -102,6 +102,11 @@
             },
             {
                 "internalType": "address",
+                "name": "_streamCreator",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
                 "name": "_recipient",
                 "type": "address"
             },

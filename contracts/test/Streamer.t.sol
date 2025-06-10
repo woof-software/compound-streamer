@@ -65,6 +65,7 @@ contract StreamerTest is Test {
                 AggregatorV3Interface(address(streamingAssetPriceFeed)),
                 AggregatorV3Interface(address(nativeAssetPriceFeed)),
                 returnAddress,
+                streamCreator,
                 recipient,
                 _streamingAmount,
                 slippage,

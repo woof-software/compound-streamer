@@ -23,11 +23,11 @@ Read more on (Compound Forum)[TODO]
 ## Deployed Contracts
 
 | Network | Contract Name       | Address                                    | Link                                                                            |
-|---------|---------------------|--------------------------------------------|---------------------------------------------------------------------------------|
-| Mainnet | Streamer Contract    | TBD                                        | TBD                                                                             |
+| ------- | ------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- |
+| Mainnet | Streamer Contract   | TBD                                        | TBD                                                                             |
 | Mainnet | Constant Price Feed | 0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB | [Link](https://etherscan.io/address/0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB) |
 
-Use [Chainlink](https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1&testnetPage=1) or any other price provider to find proper price feeds. 
+Use [Chainlink](https://docs.chain.link/data-feeds/price-feeds/addresses?network=ethereum&page=1&testnetPage=1) or any other price provider to find proper price feeds.
 
 ## Examples
 
@@ -42,6 +42,7 @@ deployFactory(
     0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5, // Valid COMP/USD Price Feed
     0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, // Valid USDC/USD Price Feed
     0x<RETURN_ADDRESS>, // Address where the surplus of COMP will be returned
+    0x<STREAM_CREATOR>, // Address of the Stream owner who can initialize stream, sweep and rescue tokens
     0x<RECIPIENT_ADDRESS>, // Stream receiver
     1000000000000, // $1M with 6 decimals
     500000, // Slippage param (e.g., 0.5% = 5e5)
@@ -52,7 +53,7 @@ deployFactory(
 );
 ```
 
-A total of 2,739 USDC worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information. 
+A total of 2,739 USDC worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information.
 
 ### Example 2. Distribute 1M worth of USD in COMP
 
@@ -65,6 +66,7 @@ deployFactory(
     0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5, // Valid COMP/USD price feed
     0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB, // Constant price feed returning 1 USD
     0x<RETURN_ADDRESS>, // Address to receive surplus COMP after stream ends
+    0x<STREAM_CREATOR>, // Address of the Stream owner who can initialize stream, sweep and rescue tokens
     0x<RECIPIENT_ADDRESS>, // Stream receiver address
     1000000000000, // Stream amount: $1M in 6 decimals
     <SLIPPAGE>, // Slippage parameter (e.g., 5e5 = 0.5% reduction)
@@ -75,7 +77,7 @@ deployFactory(
 );
 ```
 
-A total of 2,739 USD worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information. 
+A total of 2,739 USD worth of COMP will be distributed daily. COMP amount will be calculated at the moment of claim based on price feed information.
 
 ### Example 3. Distribute 1M worth of USDC in WETH
 
@@ -88,6 +90,7 @@ deployFactory(
     0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419, // Valid ETH/USD price feed
     0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6, // Valid USDC/USD price feed
     0x<RETURN_ADDRESS>, // Address to receive surplus WETH after stream ends
+    0x<STREAM_CREATOR>, // Address of the Stream owner who can initialize stream, sweep and rescue tokens
     0x<RECIPIENT_ADDRESS>, // Stream receiver address
     1000000000000, // Stream amount: $1M in 6 decimals
     <SLIPPAGE>, // Slippage parameter (e.g., 5e5 = 0.5% reduction)
@@ -98,7 +101,7 @@ deployFactory(
 );
 ```
 
-A total of 2,739 USDC worth of WETH will be distributed daily. WETH amount will be calculated at the moment of claim based on price feed information. 
+A total of 2,739 USDC worth of WETH will be distributed daily. WETH amount will be calculated at the moment of claim based on price feed information.
 
 ## Streamer lifecycle
 
@@ -108,7 +111,7 @@ The deployment is performed via `deployStreamer` function of StreamerFactory. Ma
 
 - `_streamingAsset` and `_nativeAsset`. Make sure that these are valid ERC-20 tokens.
 - `_streamingAssetOracle` and `_nativeAssetOracle`. Streamer is designed to work with the Chainlink Price Feeds which return price in USD, however, Streamer can work with any oracles which support AggregatorV3Interface and return the price in USD.
-- `_returnAddress`, `_recipient`. Ensure that these are valid addresses which are entitled to receive ERC-20 tokens. `_recipient` should be able to call the function `claim()` of the Streamer.
+- `_returnAddress`, `_recipient`, `_streamCreator`. Ensure that these are valid addresses which are entitled to receive ERC-20 tokens. `_recipient` should be able to call the function `claim()` of the Streamer. `_streamCreator` should be able to call functions `initialize()`, `sweepRemaining()`, `rescueToken()`, `terminateStream()`.
 - `_nativeAssetStreamingAmount`. An amount of Native asset to be streamed. This value should have number of decimals equal to the number of decimals in Native Asset.
 - `_slippage`. A slippage parameter used to reduce the price of the streaming asset. For example, to set slippage to 0.5% use 5e5.
 - `_claimCooldown`, `_sweepCooldown`, `_streamDuration`, `_minimumNoticePeriod`. Set cooldown periods in seconds. Minimal period is 1 day. `_minimumNoticePeriod` must be shorter that `_streamDuration`.
@@ -116,7 +119,7 @@ The deployment is performed via `deployStreamer` function of StreamerFactory. Ma
 
 > Call the function `deployStreamer` with the necessary parameters of a new Streamer.
 
-> **Slippage tip** Set up slippage based on price feed deviation and DEX slippage. In case the COMP/USD price feed deviation is 0.5% and the DEX slippage is 0.5%, it is better to set up a 1% slippage to avoid losing USD value altogether. 
+> **Slippage tip** Set up slippage based on price feed deviation and DEX slippage. In case the COMP/USD price feed deviation is 0.5% and the DEX slippage is 0.5%, it is better to set up a 1% slippage to avoid losing USD value altogether.
 
 ### Initialization
 

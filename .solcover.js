@@ -1,5 +1,5 @@
 module.exports = {
-    skipFiles: ["interfaces/", "mocks/", "vendor/", "test"],
+    skipFiles: ["interfaces/", "mocks/", "vendor/", "test/", "oracles/"],
     mocha: {
         fgrep: "[skip-on-coverage]", // Find everything with this tag.
         invert: true, // Run the grep's inverse set.

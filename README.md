@@ -18,7 +18,7 @@ This contract is typically used for scheduled payments or vesting mechanisms wit
 
 [StreamerFactory.sol](./contracts/StreamerFactory.sol) - The Streamer Factory is a smart contract that enables the deployment of new Streamer instances using CREATE2, allowing for deterministic and predictable contract addresses. It supports customizable parameters for each deployment, including the streaming and native assets, price oracles, slippage tolerance, cooldown periods, and stream duration. The Factory ensures a safe and flexible way for users to deploy tailored Streamer contracts with full control over configuration.
 
-Read more on (Compound Forum)[https://www.comp.xyz/t/compound-streamer-universal-asset-streaming-infrastructure/6861]
+Read more on [Compound Forum](https://www.comp.xyz/t/compound-streamer-universal-asset-streaming-infrastructure/6861)
 
 ## Deployed Contracts
 

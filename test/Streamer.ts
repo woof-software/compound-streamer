@@ -24,7 +24,7 @@ describe("Streamer", function () {
         USDC_ORACLE = "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
     const returnAddress = comptrollerV2Address;
     const streamCreator = timelockAddress;
-    const streamingAmount = ethers.parseUnits("2000000", 6);
+    const streamingAmount = ethers.parseUnits("50000", 6);
     const slippage = 5e5;
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);
@@ -125,14 +125,11 @@ describe("Streamer", function () {
             .withArgs(streamingAssetAmount, streamingAmount);
     });
 
-    it("Should let only Stream Creator initialize", async () => {
+    it("Should let anyone initialize", async () => {
         // Deploy streamer
         const { user, streamer } = await deployStreamer();
 
-        await expect(initStreamer(streamer, streamingAmount, user)).revertedWithCustomError(
-            streamer,
-            "NotStreamCreator"
-        );
+        await expect(initStreamer(streamer, streamingAmount, user)).to.not.be.reverted;
     });
 
     it("Should not let initialize more than once", async () => {
@@ -618,7 +615,7 @@ describe("Streamer", function () {
 
         // Simulate decrease of balance. In normal conditions, lack of balance should happen due to the price growth.
         const streamerSignerMock = await ethers.getImpersonatedSigner(await streamer.getAddress());
-        const remainingAmount = ethers.parseUnits("1000", 18);
+        const remainingAmount = ethers.parseUnits("100", 18);
         await network.provider.request({
             method: "hardhat_setBalance",
             params: [await streamer.getAddress(), "0x100000000000000000"]

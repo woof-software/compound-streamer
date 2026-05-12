@@ -150,7 +150,7 @@ contract Streamer is IStreamer {
      * The extra amount depends on the volatility of assets. In general, we recommend sending extra 10% of the necessary Streaming asset amount.
      * @dev Use the function `calculateStreamingAssetAmount` to determine the amount of Streaming asset to transfer.
      */
-    function initialize() external onlyStreamCreator {
+    function initialize() external {
         if (state != StreamState.NOT_INITIALIZED) revert AlreadyInitialized();
         startTimestamp = block.timestamp;
         lastClaimTimestamp = block.timestamp;

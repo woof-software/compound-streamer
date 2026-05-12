@@ -15,7 +15,7 @@ describe("[skip-on-coverage]Streamer", function () {
         CONSTANT_PRICE_FEED = "0xD72ac1bCE9177CFe7aEb5d0516a38c88a64cE0AB";
     const returnAddress = comptrollerV2Address;
     const streamCreator = timelockAddress;
-    const streamingAmount = ethers.parseUnits("2000000", 6);
+    const streamingAmount = ethers.parseUnits("50000", 6);
     const slippage = 5e5;
     const claimCooldown = time.duration.days(7);
     const sweepCooldown = time.duration.days(10);

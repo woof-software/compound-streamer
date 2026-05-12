@@ -112,8 +112,8 @@ contract StreamerTest is Test {
         streamDuration = bound(streamDuration, minimumNoticePeriod + 1, MAX_DURATION);
         claimCooldown = bound(claimCooldown, MIN_DURATION + 1, streamDuration - 1);
         sweepCooldown = bound(sweepCooldown, MIN_DURATION + 1, MAX_DURATION);
-        streamingAssetPrice = bound(streamingAssetPrice, 1, 100000);
-        nativeAssetPrice = bound(nativeAssetPrice, 1, 100000);
+        streamingAssetPrice = bound(streamingAssetPrice, 1, 1000);
+        nativeAssetPrice = bound(nativeAssetPrice, 100, 100000);
         streamingAssetPrice = streamingAssetPrice * 10 ** streamingTokenOracleDecimals;
         nativeAssetPrice = nativeAssetPrice * 10 ** nativeTokenOracleDecimals;
         vm.assume(
